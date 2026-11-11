@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Zhongwenfy</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<style>
+:root{--red:#8b1a1a;--cream:#f9f5f0;--line:#e6dccb;--ink:#222}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:system-ui,"Noto Sans SC",sans-serif}
+header{background:var(--red);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px}
+.logo{width:38px;height:38px;border-radius:9px;background:#fff;color:var(--red);font:700 24px serif;display:grid;place-items:center}
+header b{font-size:20px}header .sp{flex:1}
+main{max-width:1000px;margin:0 auto;padding:18px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px}
+button{font:inherit;cursor:pointer;border:0;border-radius:999px;padding:10px 20px;background:var(--red);color:#fff;font-weight:600}
+button.o{background:#fff;color:var(--red);border:1px solid var(--red)}button:disabled{opacity:.4;cursor:default}
+input{font:inherit;padding:10px 14px;border:1px solid var(--line);border-radius:10px;width:100%;margin:6px 0 12px}
+.row{display:flex;gap:12px;flex-wrap:wrap}.row>.card{flex:1;min-width:260px}
+.sec{background:#f8efe9;border-radius:10px;padding:10px 14px;margin:18px 0 10px;font:600 17px serif}
+.q{border-top:1px solid var(--line);padding:12px 0}.q h4{margin:0 0 6px;font-size:12px;color:#777}
+.zh{font:20px serif;margin-bottom:8px}.py{font-size:12px;color:#b04040}
+.opts{display:flex;gap:10px;flex-wrap:wrap}
+.opt{border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer;display:flex;gap:8px;align-items:center;background:#fff;min-width:80px}
+.opt i{font:700 12px system-ui;width:22px;height:22px;border-radius:50%;background:#f4ead9;display:grid;place-items:center}
+.opt.on{border-color:var(--red);background:#fbeaea}.opt.on i{background:var(--red);color:#fff}
+.img{width:120px;height:80px;background:#eee;display:grid;place-items:center;font-size:11px;color:#999;border-radius:6px;overflow:hidden}
+.img img{width:100%;height:100%;object-fit:cover}
+.layout{display:grid;grid-template-columns:1fr 250px;gap:16px}@media(max-width:800px){.layout{grid-template-columns:1fr}}
+.side{position:sticky;top:10px;align-self:start}
+.nav{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.nav a{border:1px solid var(--line);border-radius:8px;text-align:center;padding:7px 0;font-size:13px;text-decoration:none;color:#555;background:#fff}
+.nav a.d{background:var(--red);color:#fff;border-color:var(--red)}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{border:1px solid var(--line);padding:6px 8px;text-align:center}th{background:#f8efe9}td:first-child{text-align:left}
+.sc{font-weight:700}.mut{color:#999}.link{color:var(--red);cursor:pointer;text-decoration:underline;font-size:12px}
+.big{font:700 28px monospace;letter-spacing:4px;color:var(--red)}audio{width:100%}
+</style></head><body>
+<header><div class="logo">中</div><b>Zhongwenfy</b><span class="sp"></span><span id="who"></span></header>
+<main id="app"></main>
+<script src="soal.js"></script>
+<script>
+// ====== ISI 2 BARIS INI (lihat PANDUAN.md langkah 4) ======
+const SUPABASE_URL = "ISI_URL_PROJECT_SUPABASE";
+const SUPABASE_KEY = "ISI_ANON_PUBLIC_KEY";
+// =========================================================
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const $ = s => document.querySelector(s), app = $('#app');
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const LS = { get:k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}}, set:(k,v)=>localStorage.setItem(k,JSON.stringify(v)), del:k=>localStorage.removeItem(k) };
+const BAB_NOS = Object.keys(BABS).length ? Array.from({length:12},(_,i)=>i+4) : [];
+let chan = null, timer = null;
+const rnd = (n,al) => Array.from({length:n},()=>al[Math.floor(Math.random()*al.length)]).join('');
+const fail = e => alert('Terjadi masalah: ' + (e.message || e));
+
+function home(){
+  clearInterval(timer); if(chan){db.removeChannel(chan);chan=null}
+  $('#who').textContent = '';
+  const t = LS.get('teacher'), s = LS.get('student');
+  app.innerHTML = `<div class="row">
+   <div class="card"><h2>我是老师 · Laoshi</h2>
+    ${t?`<p>Kelas terakhir: <b>${esc(t.name)}</b></p><button id="tOpen">Buka Dashboard</button><hr>`:''}
+    <label>Buat kelas baru</label><input id="cname" placeholder="Nama kelas, mis. HSK 1 Kelas A"><button id="tNew">Buat Kelas</button>
+    <hr><label>Sudah punya kelas? Masukkan Kunci Laoshi</label><input id="tkey" placeholder="Kunci laoshi"><button class="o" id="tIn">Masuk Dashboard</button></div>
+   <div class="card"><h2>我是学生 · Siswa</h2>
+    <label>Kode kelas</label><input id="code" maxlength="6" placeholder="mis. K7M2QX" style="text-transform:uppercase" value="${s?esc(s.code):''}">
+    <label>Username kamu</label><input id="uname" placeholder="Nama / username" value="${s?esc(s.username):''}">
+    <button id="sIn">Masuk Kelas</button></div></div>`;
+  $('#tNew').onclick = createClass; $('#tIn').onclick = () => openDash($('#tkey').value.trim());
+  if(t) $('#tOpen').onclick = () => openDash(t.key);
+  $('#sIn').onclick = joinClass;
+}
+async function createClass(){
+  const name = $('#cname').value.trim(); if(!name) return alert('Isi nama kelas dulu.');
+  for(let i=0;i<5;i++){
+    const code = rnd(6,'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'), key = rnd(12,'abcdefghjkmnpqrstuvwxyz23456789');
+    const {data,error} = await db.from('classes').insert({name,code,teacher_key:key}).select().single();
+    if(!error){ LS.set('teacher',{key,name,id:data.id}); return openDash(key,true); }
+    if(!String(error.message).includes('duplicate')) return fail(error);
+  }
+}
+async function openDash(key,isNew){
+  const {data:c,error} = await db.from('classes').select('*').eq('teacher_key',key).maybeSingle();
+  if(error) return fail(error); if(!c) return alert('Kunci laoshi tidak ditemukan.');
+  LS.set('teacher',{key,name:c.name,id:c.id}); $('#who').textContent = '老师 · ' + c.name;
+  app.innerHTML = `<div class="card"><h2>${esc(c.name)}</h2>
+    <p>Kode kelas untuk siswa: <span class="big">${c.code}</span></p>
+    <p>Kunci laoshi (simpan, untuk masuk lagi): <b>${c.teacher_key}</b> ${isNew?'<span class="mut">← catat sekarang!</span>':''}</p>
+    <button class="o" id="back">Keluar</button></div>
+    <div class="card" style="overflow:auto"><h3>Progres siswa <small class="mut">(realtime)</small></h3><div id="tbl"></div></div>`;
+  $('#back').onclick = home;
+  const draw = async () => {
+    const [{data:st},{data:at}] = await Promise.all([
+      db.from('students').select('*').eq('class_id',c.id).order('username'),
+      db.from('attempts').select('*').eq('class_id',c.id)]);
+    const m = {}; (at||[]).forEach(a => m[a.student_id+'_'+a.bab] = a);
+    $('#tbl').innerHTML = !(st||[]).length ? '<p class="mut">Belum ada siswa yang masuk.</p>' :
+      `<table><tr><th>Siswa</th>${BAB_NOS.map(b=>`<th>Bab ${b}</th>`).join('')}<th>Rata²</th></tr>` +
+      st.map(s => { const sc = BAB_NOS.map(b=>m[s.id+'_'+b]);
+        const done = sc.filter(Boolean), avg = done.length ? Math.round(done.reduce((x,a)=>x+a.score/a.total*100,0)/done.length) : '—';
+        return `<tr><td>${esc(s.username)}</td>${sc.map((a,i)=>a?`<td><span class="sc">${a.score}/${a.total}</span><br><span class="link" data-id="${a.id}">aktifkan ulang</span></td>`:'<td class="mut">—</td>').join('')}<td class="sc">${avg}${avg!=='—'?'%':''}</td></tr>`}).join('') + '</table>';
+    document.querySelectorAll('.link').forEach(l => l.onclick = async () => {
+      if(!confirm('Hapus nilai bab ini agar siswa bisa mengerjakan ulang?')) return;
+      const {error} = await db.from('attempts').delete().eq('id',l.dataset.id); if(error) fail(error);
+    });
+  };
+  await draw();
+  chan = db.channel('dash').on('postgres_changes',{event:'*',schema:'public',table:'attempts',filter:'class_id=eq.'+c.id},draw)
+    .on('postgres_changes',{event:'*',schema:'public',table:'students',filter:'class_id=eq.'+c.id},draw).subscribe();
+}
+async function joinClass(){
+  const code = $('#code').value.trim().toUpperCase(), username = $('#uname').value.trim();
+  if(!code || !username) return alert('Isi kode kelas dan username.');
+  const {data:c,error} = await db.from('classes').select('id,name').eq('code',code).maybeSingle();
+  if(error) return fail(error); if(!c) return alert('Kode kelas tidak ditemukan.');
+  let {data:s} = await db.from('students').select('*').eq('class_id',c.id).ilike('username',username).maybeSingle();
+  if(!s){ const r = await db.from('students').insert({class_id:c.id,username}).select().single(); if(r.error) return fail(r.error); s = r.data; }
+  LS.set('student',{code,username:s.username,id:s.id,class_id:c.id,cname:c.name}); babList();
+}
+async function babList(){
+  const s = LS.get('student'); $('#who').textContent = s.username + ' · ' + s.cname;
+  const {data:at} = await db.from('attempts').select('bab,score,total').eq('student_id',s.id);
+  const m = {}; (at||[]).forEach(a => m[a.bab] = a);
+  app.innerHTML = `<div class="card"><h2>模拟测验 · Pilih Bab</h2><div class="row">${BAB_NOS.map(b => {
+    const a = m[b], ok = BABS[b];
+    return `<div class="card" style="min-width:150px;flex:0 0 150px"><b>Bab ${b}</b><br>${a?`<span class="sc">${a.score}/${a.total}</span><br><span class="mut">selesai</span>`:ok?'<button data-b="'+b+'">Mulai</button>':'<span class="mut">segera hadir</span>'}</div>`}).join('')}</div>
+    <button class="o" id="out">Keluar</button></div>`;
+  document.querySelectorAll('button[data-b]').forEach(b => b.onclick = () => startTest(+b.dataset.b));
+  $('#out').onclick = () => { LS.del('student'); home(); };
+}
+function startTest(bab){
+  const B = BABS[bab], ans = {}, t0 = Date.now(); let html = '', last = null;
+  B.qs.forEach(q => {
+    const sec = Object.keys(SEC).map(Number).filter(n => n <= q.n).pop();
+    if(sec !== last){ html += `<div class="sec">${SEC[sec]}</div>`; last = sec; }
+    html += `<div class="q" id="q${q.n}"><h4>SOAL ${q.n}</h4>${q.zh?`<div class="zh">${q.py?`<div class="py">${esc(q.py)}</div>`:''}${esc(q.zh)}</div>`:''}<div class="opts">` +
+      q.opts.map(o => `<div class="opt" data-n="${q.n}" data-k="${o.k}"><i>${o.k}</i>${o.img!==undefined?`<div class="img">${o.img&&typeof o.img==='string'?`<img src="${esc(o.img)}">`:'gambar'}</div>`:esc(o.zh)}</div>`).join('') + '</div></div>';
+  });
+  app.innerHTML = `<div class="layout"><div class="card"><h2>模拟测验 · Bab ${bab}</h2>${html}</div><div class="side">
+    <div class="card"><b>REKAMAN UJIAN · 听力</b><audio controls src="${B.audio}"></audio></div>
+    <div class="card"><b>⏱ <span id="tm">00:00</span></b> · <span id="cnt">0</span>/${B.qs.length} terjawab
+    <div class="nav" style="margin:10px 0">${B.qs.map(q=>`<a href="#q${q.n}" id="n${q.n}">${q.n}</a>`).join('')}</div>
+    <button id="sub" style="width:100%">Kumpulkan Jawaban</button></div></div></div>`;
+  timer = setInterval(() => { const s = Math.floor((Date.now()-t0)/1000); $('#tm').textContent = String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }, 1000);
+  document.querySelectorAll('.opt').forEach(o => o.onclick = () => {
+    const n = o.dataset.n; ans[n] = o.dataset.k;
+    document.querySelectorAll(`.opt[data-n="${n}"]`).forEach(x => x.classList.toggle('on', x === o));
+    $('#n'+n).classList.add('d'); $('#cnt').textContent = Object.keys(ans).length;
+  });
+  $('#sub').onclick = async () => {
+    const left = B.qs.length - Object.keys(ans).length;
+    if(!confirm(left ? `Masih ${left} soal belum dijawab. Kumpulkan? Bab ini TIDAK bisa diulang.` : 'Kumpulkan jawaban? Bab ini tidak bisa diulang.')) return;
+    const s = LS.get('student'), score = B.qs.filter(q => q.a && ans[q.n] === q.a).length;
+    $('#sub').disabled = true; clearInterval(timer);
+    const {error} = await db.from('attempts').insert({class_id:s.class_id,student_id:s.id,bab,answers:ans,score,total:B.qs.length,seconds:Math.floor((Date.now()-t0)/1000)});
+    if(error){ $('#sub').disabled = false; return fail(String(error.message).includes('duplicate') ? 'Bab ini sudah pernah dikerjakan. Minta laoshi mengaktifkan ulang.' : error); }
+    alert(`Selesai! Nilai: ${score}/${B.qs.length}`); babList();
+  };
+}
+home();
+</script></body></html>
