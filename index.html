@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#8b1a1a">
 <title>Zhongwenfy</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -46,6 +46,34 @@ input,select{font:inherit;padding:10px 14px;border:1px solid var(--line);border-
 table{border-collapse:collapse;width:100%;font-size:13px}td,th{border:1px solid var(--line);padding:5px 7px;text-align:center}th{background:#f8efe9}td:first-child,th:first-child{text-align:left;position:sticky;left:0;background:#fff}
 .tabs{display:flex;gap:8px;margin-bottom:10px}.tabs button{padding:6px 16px}.link{color:var(--red);cursor:pointer;text-decoration:underline;font-size:12px}
 .pill{display:inline-block;border-radius:999px;padding:1px 8px;font-size:12px;font-weight:700}.g{background:#e3f4e8;color:#1f6b3d}.y{background:#fff3cd;color:#8a6d00}.r{background:#fde2e2;color:#a12020}
+
+/* ===== nyaman di semua perangkat ===== */
+body{font-size:16px;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;padding-bottom:env(safe-area-inset-bottom)}
+button,.opt,.nav a,select{touch-action:manipulation}
+img{max-width:100%}.zh,.en,.py{overflow-wrap:anywhere}
+button{min-height:44px}.opt{min-height:48px}.nav a{padding:12px 0}.fz button{padding:6px 16px;min-height:40px}
+.hd{font-size:11px;letter-spacing:.06em;color:#777;display:block;margin-bottom:4px}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;flex-wrap:wrap}.bar .fz{margin:0}
+.q{scroll-margin-top:150px}.babs{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}.babs .card{margin:0;text-align:center}
+.row>.card{min-width:min(260px,100%)}.modal>div{width:min(420px,92vw)}#who{display:flex;align-items:center;gap:8px;min-width:0}.nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:40vw}
+.tabs{flex-wrap:wrap}
+.opts.lets{display:flex;flex-wrap:wrap;gap:10px}.lets .opt{flex:1 1 0;max-width:96px;min-width:60px;justify-content:center;min-height:52px}
+header button{min-height:40px}
+@media(max-width:820px){
+ header{padding:6px 12px;min-height:48px}header b{font-size:17px}.logo{width:32px;height:32px;font-size:20px;border-radius:8px}header button{min-height:36px;padding:4px 12px}
+ main{padding:10px}.card{padding:14px;border-radius:12px}
+ .layout{grid-template-columns:1fr;gap:8px}.side{display:contents}
+ .s1{order:-1;position:sticky;top:48px;z-index:4;padding:8px 10px;margin:0;box-shadow:0 3px 10px #0002}.s1 audio{height:36px}
+ .s2{order:5}.nav{grid-template-columns:repeat(5,1fr)}
+ .test{padding:12px}.q{scroll-margin-top:140px}
+ .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+ .opt{min-width:0}.opt.big{flex-direction:column;align-items:flex-start}
+ .opt img,.sh img{width:100%;height:auto;aspect-ratio:5/3}
+ .shared{display:grid;grid-template-columns:repeat(2,1fr)}.sh{flex-direction:column;align-items:flex-start}
+ table{font-size:12px}td,th{padding:4px 5px}
+ .toast{left:10px;right:10px;max-width:none}
+}
+@media(max-width:380px){.opts{grid-template-columns:1fr}.nm{max-width:30vw}}
 </style></head><body>
 <header><div class="logo">中</div><b>Zhongwenfy</b><span class="sp"></span><span id="who"></span></header>
 <main id="app"><p class="mut">Memuat…</p></main>
@@ -77,7 +105,7 @@ async function boot(){
   const {data:gu,error:ge} = await db.auth.getUser();            // cek ke server: sesi lama/kedaluwarsa dibuang
   if(ge||!gu?.user){ await db.auth.signOut(); return loginScreen(); }
   me = gu.user;
-  $('#who').innerHTML = `${esc(me.user_metadata?.full_name||me.email)} <button class="o" id="lo">Keluar</button>`;
+  $('#who').innerHTML = `<span class="nm">${esc(me.user_metadata?.full_name||me.email)}</span> <button class="o" id="lo">Keluar</button>`;
   $('#lo').onclick = async () => { await db.auth.signOut(); location.href = location.origin + location.pathname; };
   const {data,error} = await db.from('zw_profiles').select('*').eq('id',me.id).maybeSingle();
   if(error) return err(error);
@@ -108,8 +136,8 @@ async function studentHome(){
   }
   const {data:at} = await db.from('zw_attempts').select('bab,score,total').eq('student_id',me.id);
   const d = {}; (at||[]).forEach(a => d[a.bab]=a);
-  app.innerHTML = `<div class="card"><h2>${esc(m.zw_classes?.name)} <small class="mut">· ${esc(m.username)}</small></h2><h3>模拟测验 · Pilih Bab</h3><div class="row">${BAB_NOS.map(b=>{const a=d[b];
-    return `<div class="card" style="min-width:140px;flex:0 0 140px"><b>Bab ${b}</b><br>${a?`<span class="sc">${a.score}/${a.total}</span> <span class="pill ${cls(pct(a.score,a.total))}">${pct(a.score,a.total)}%</span><br><span class="mut">selesai</span>`:BABS[b]?`<button data-b="${b}">Mulai</button>`:'<span class="mut">segera hadir</span>'}</div>`}).join('')}</div></div>`;
+  app.innerHTML = `<div class="card"><h2>${esc(m.zw_classes?.name)} <small class="mut">· ${esc(m.username)}</small></h2><h3>模拟测验 · Pilih Bab</h3><div class="babs">${BAB_NOS.map(b=>{const a=d[b];
+    return `<div class="card"><b>Bab ${b}</b><br>${a?`<span class="sc">${a.score}/${a.total}</span> <span class="pill ${cls(pct(a.score,a.total))}">${pct(a.score,a.total)}%</span><br><span class="mut">selesai</span>`:BABS[b]?`<button data-b="${b}">Mulai</button>`:'<span class="mut">segera hadir</span>'}</div>`}).join('')}</div></div>`;
   document.querySelectorAll('button[data-b]').forEach(b => b.onclick = () => { if(confirm('Mulai Bab '+b.dataset.b+'?\n• Hanya bisa dikerjakan SEKALI.\n• Jangan pindah tab/aplikasi: peringatan maksimal 3x, lalu otomatis dikumpulkan.')) startTest(+b.dataset.b); });
 }
 
@@ -127,26 +155,26 @@ function exampleHTML(s,B){
 function startTest(bab){
   leave();
   const B=BABS[bab], ans=LS.get('ans_'+bab)||{}, t0=Date.now()-(LS.get('t_'+bab)||0)*1000;
-  let vio=LS.get('vio_'+bab)||0, done=false, warn=false, sizes=[14,16,18,20,24], si=LS.get('fs')??2;
+  let vio=LS.get('vio_'+bab)||0, done=false, warn=false, sizes=[14,16,18,20,24], si=LS.get('fs')??(innerWidth<600?1:2);
   let html='';
   SECS.forEach(s=>{
     const qs=B.qs.filter(q=>q.n>=s.from&&q.n<=s.to); if(!qs.length) return;
     html+=`<div class="sec">${s.zh}<small>${esc(s.en)}</small></div><div class="how">📘 <b>Cara mengerjakan:</b> ${esc(s.how)}</div>`+exampleHTML(s,B);
     const sh=B.shared[s.id], letters=sh?sh.items.map((_,i)=>'ABCD'[i]).filter(k=>k!==sh.ex):null;
     if(sh) html+=`<div class="shared">${sh.items.map((it,i)=>shHTML(it,'ABCD'[i],sh.ex)).join('')}</div>`;
-    qs.forEach(q=>{ html+=`<div class="q" id="q${q.n}"><h4>SOAL ${q.n}</h4>${q.zh?stem(q):''}<div class="opts">`+
+    qs.forEach(q=>{ html+=`<div class="q" id="q${q.n}"><h4>SOAL ${q.n}</h4>${q.zh?stem(q):''}<div class="opts${sh?' lets':''}">`+
       (sh?letters.map(k=>`<div class="opt" data-n="${q.n}" data-k="${k}"><i>${k}</i></div>`).join(''):q.opts.map((o,i)=>optHTML(o,'ABCD'[i],q.n)).join(''))+'</div></div>'; });
   });
   app.innerHTML=`<div class="layout"><div class="card test nocopy" id="tst"><h2 style="font-size:1.2em">模拟测验 · Bab ${bab}</h2>${html}</div><div class="side">
-   <div class="card"><b>REKAMAN UJIAN · 听力</b><audio controls controlsList="nodownload" preload="none" src="${B.audio}"></audio></div>
-   <div class="card"><b>⏱ <span id="tm">00:00</span></b> · <span id="cnt">0</span>/20 terjawab<div class="fz">Ukuran huruf: <button class="o" id="fm">A−</button><button class="o" id="fp">A+</button></div>
-   <div class="nav">${B.qs.map(q=>`<a data-g="${q.n}" id="n${q.n}">${q.n}</a>`).join('')}</div><button id="sub" style="width:100%">Kumpulkan Jawaban</button>
+   <div class="card s1"><b class="hd">REKAMAN UJIAN · 听力</b><audio controls controlsList="nodownload" preload="none" src="${B.audio}"></audio>
+   <div class="bar"><b>⏱ <span id="tm">00:00</span></b><span><b id="cnt">0</b>/20 terjawab</span><span class="fz"><button class="o" id="fm" aria-label="Perkecil huruf">A−</button><button class="o" id="fp" aria-label="Perbesar huruf">A+</button></span></div></div>
+   <div class="card s2"><b>Nomor soal</b><div class="nav">${B.qs.map(q=>`<a data-g="${q.n}" id="n${q.n}">${q.n}</a>`).join('')}</div><button id="sub" style="width:100%">Kumpulkan Jawaban</button>
    <p class="mut" style="font-size:12px">Pindah tab: <b id="vc">${vio}</b>/3</p></div></div></div>`;
   const setFs=()=>$('#tst').style.setProperty('--fs',sizes[si]+'px'); setFs();
   $('#fm').onclick=()=>{si=Math.max(0,si-1);LS.set('fs',si);setFs()}; $('#fp').onclick=()=>{si=Math.min(4,si+1);LS.set('fs',si);setFs()};
   const mark=()=>{ document.querySelectorAll('.opt[data-k]').forEach(o=>o.classList.toggle('on',ans[o.dataset.n]===o.dataset.k)); B.qs.forEach(q=>$('#n'+q.n).classList.toggle('d',!!ans[q.n])); $('#cnt').textContent=Object.keys(ans).length; }; mark();
   document.querySelectorAll('.opt[data-n]').forEach(o=>{ if(o.dataset.n!=='0') o.onclick=()=>{ ans[o.dataset.n]=o.dataset.k; LS.set('ans_'+bab,ans); mark(); } });
-  document.querySelectorAll('.nav a').forEach(a=>a.onclick=()=>$('#q'+a.dataset.g).scrollIntoView({behavior:'smooth',block:'center'}));
+  document.querySelectorAll('.nav a').forEach(a=>a.onclick=()=>$('#q'+a.dataset.g).scrollIntoView({behavior:'smooth',block:'start'}));
   timer=setInterval(()=>{ const s=Math.floor((Date.now()-t0)/1000); LS.set('t_'+bab,s); $('#tm').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); },1000);
   // --- anti salin ---
   const stop=e=>e.preventDefault(), t=$('#tst');
