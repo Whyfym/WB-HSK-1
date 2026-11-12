@@ -107,3 +107,39 @@ BABS[7] = MK(7,{ r2ex:'D',
   r4:[{...T('我今天早上八点半上课，十点十分下课。★说话人今天几点下课？','Wǒ jīntiān zǎoshang bā diǎn bàn shàngkè, shí diǎn shí fēn xiàkè.'),opts:[T('8:30',''),T('10:10',''),T('10:20','')]},
       {...T('妈妈今天休息，下午想去菜店买些菜。★妈妈下午想去菜店买：','Māma jīntiān xiūxi, xiàwǔ xiǎng qù càidiàn mǎi xiē cài.'),opts:[T('菜','cài'),T('饺子','jiǎozi'),T('牛奶','niúnǎi')]}]
 });
+
+BABS[8] = MK(8,{ r2ex:'D',
+  l2:[[T('去学校','qù xuéxiào'),T('房间外','fángjiān wài'),T('在吃东西','zài chī dōngxi')],[T('我能到','wǒ néng dào'),T('我吃午饭','wǒ chī wǔfàn'),T('我不能工作','wǒ bù néng gōngzuò')]],
+  l4:[[T('超市','chāoshì'),T('饭店','fàndiàn'),T('学校书店','xuéxiào shūdiàn')],[T('去学校','qù xuéxiào'),T('看电影','kàn diànyǐng'),T('去上班','qù shàngbān')]],
+  r1:[T('你的手机在桌子上呢。','Nǐ de shǒujī zài zhuōzi shang ne.'),T('我在学校吃午饭。','Wǒ zài xuéxiào chī wǔfàn.'),T('这个医院里病人多，医生工作很忙。','Zhège yīyuàn lǐ bìngrén duō, yīshēng gōngzuò hěn máng.')],
+  r2:[T('医院。','Yīyuàn.'),T('我老师。','Wǒ lǎoshī.'),T('饺子和面条儿。','Jiǎozi hé miàntiáor.'),T('好的，谢谢！','Hǎo de, xièxie!')],
+  r2q:[T('桌子上有什么？','Zhuōzi shang yǒu shénme?'),T('她是谁？','Tā shì shéi?'),T('你爸爸在哪儿工作？','Nǐ bàba zài nǎr gōngzuò?')],
+  r3:[T('能','néng'),T('有','yǒu'),T('名字','míngzi')],
+  r3q:[T('我的房间里（　　）一只小猫。','Wǒ de fángjiān lǐ … yì zhī xiǎo māo.'),T('男：我们下午在书店见吧。　女：好的，我7:00（　　）到。','Wǒmen xiàwǔ zài shūdiàn jiàn ba. Hǎo de, wǒ qī diǎn … dào.')],
+  r4:[{...T('昨天爸爸在医院工作，哥哥在家里休息，没去书店。★说话人的哥哥昨天：','Zuótiān bàba zài yīyuàn gōngzuò, gēge zài jiā lǐ xiūxi, méi qù shūdiàn.'),opts:[T('在家里','zài jiā lǐ'),T('在书店','zài shūdiàn'),T('在医院工作','zài yīyuàn gōngzuò')]},
+      {...T('我喜欢吃米饭，我女朋友不喜欢。★说话人的女朋友不喜欢吃：','Wǒ xǐhuan chī mǐfàn, wǒ nǚpéngyou bù xǐhuan.'),opts:[T('米饭','mǐfàn'),T('包子','bāozi'),T('面条儿','miàntiáor')]}]
+});
+
+BABS[9] = MK(9,{ r2ex:'D',
+  l2:[[T('书','shū'),T('我的','wǒ de'),T('他的电脑','tā de diànnǎo')],[T('星期天','Xīngqītiān'),T('孩子们','háizimen'),T('去外边唱歌','qù wàibian chàng gē')]],
+  l4:[[T('上午8:00','shàngwǔ'),T('上午10:00','shàngwǔ'),T('晚上8:00','wǎnshang')],[T('菜店','càidiàn'),T('书店','shūdiàn'),T('超市','chāoshì')]],
+  r1:[T('妹妹和小狗今天在家里玩。','Mèimei hé xiǎo gǒu jīntiān zài jiā lǐ wán.'),T('房间外有一只小猫。','Fángjiān wài yǒu yì zhī xiǎo māo.'),T('这是我的第三个电脑。','Zhè shì wǒ de dì-sān gè diànnǎo.')],
+  r2:[T('在家里。','Zài jiā lǐ.'),T('我女朋友。','Wǒ nǚpéngyou.'),T('一只小猫。','Yì zhī xiǎo māo.'),T('好的，谢谢！','Hǎo de, xièxie!')],
+  r2q:[T('桌子上有什么？','Zhuōzi shang yǒu shénme?'),T('你今天下午在哪儿？','Nǐ jīntiān xiàwǔ zài nǎr?'),T('你和谁在超市呢？','Nǐ hé shéi zài chāoshì ne?')],
+  r3:[T('2:00',''),T('上课','shàngkè'),T('名字','míngzi')],
+  r3q:[T('我上午在学校（　　），我们下午去看电影吧。','Wǒ shàngwǔ zài xuéxiào …, wǒmen xiàwǔ qù kàn diànyǐng ba.'),T('男：我们下午几点在学校见？　女：下午（　　）吧。','Wǒmen xiàwǔ jǐ diǎn zài xuéxiào jiàn? Xiàwǔ … ba.')],
+  r4:[{...T('我有一只小狗，很漂亮，它是我的好朋友。★说话人有几只小狗？','Wǒ yǒu yì zhī xiǎo gǒu, hěn piàoliang, tā shì wǒ de hǎo péngyou.'),opts:[T('一','yī'),T('四','sì'),T('十一','shíyī')]},
+      {...T('星期天中午妈妈在做饭，我和妹妹在房间里玩。★说话人和妹妹在哪儿？','Xīngqītiān zhōngwǔ māma zài zuò fàn, wǒ hé mèimei zài fángjiān lǐ wán.'),opts:[T('外边','wàibian'),T('房间里','fángjiān lǐ'),T('超市里','chāoshì lǐ')]}]
+});
+
+BABS[10] = MK(10,{ r2ex:'D',
+  l2:[[T('10:00',''),T('十块钱','shí kuài qián'),T('十本书','shí běn shū')],[T('不贵','bú guì'),T('很好看','hěn hǎokàn'),T('120元','yuán')]],
+  l4:[[T('很多','hěn duō'),T('真贵','zhēn guì'),T('不好看','bù hǎokàn')],[T('很少','hěn shǎo'),T('很便宜','hěn piányi'),T('很漂亮','hěn piàoliang')]],
+  r1:[T('请问，包子多少钱一个？','Qǐngwèn, bāozi duōshao qián yí gè?'),T('这边的苹果真便宜。','Zhèbiān de píngguǒ zhēn piányi.'),T('这些是男孩子穿的衣服。','Zhèxiē shì nán háizi chuān de yīfu.')],
+  r2:[T('十块钱。','Shí kuài qián.'),T('对不起，没有。','Duìbuqǐ, méiyǒu.'),T('在那边。','Zài nàbiān.'),T('好的，谢谢！','Hǎo de, xièxie!')],
+  r2q:[T('女孩子的衣服在哪儿？','Nǚ háizi de yīfu zài nǎr?'),T('杯子多少钱一个？','Bēizi duōshao qián yí gè?'),T('请问这儿有牛奶吗？','Qǐngwèn zhèr yǒu niúnǎi ma?')],
+  r3:[T('穿','chuān'),T('块','kuài'),T('名字','míngzi')],
+  r3q:[T('那些苹果两（　　）钱一斤，很便宜。','Nàxiē píngguǒ liǎng … qián yì jīn, hěn piányi.'),T('男：这件衣服怎么样？　女：很好看，10岁的男孩子能（　　）。','Zhè jiàn yīfu zěnmeyàng? Hěn hǎokàn, shí suì de nán háizi néng …')],
+  r4:[{...T('我没有手机，今天想去商店买一个。★说话人想买什么？','Wǒ méiyǒu shǒujī, jīntiān xiǎng qù shāngdiàn mǎi yí gè.'),opts:[T('杯子','bēizi'),T('手机','shǒujī'),T('水果','shuǐguǒ')]},
+      {...T('这件衣服很好看，你也能穿，买一件吧。★那件衣服：','Zhè jiàn yīfu hěn hǎokàn, nǐ yě néng chuān, mǎi yí jiàn ba.'),opts:[T('好看','hǎokàn'),T('便宜','piányi'),T('很贵','hěn guì')]}]
+});
