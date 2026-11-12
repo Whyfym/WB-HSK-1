@@ -74,6 +74,16 @@ header button{min-height:40px}
  .toast{left:10px;right:10px;max-width:none}
 }
 @media(max-width:380px){.opts{grid-template-columns:1fr}.nm{max-width:30vw}}
+
+/* ===== pesan, laporan ===== */
+textarea{font:inherit;padding:10px 14px;border:1px solid var(--line);border-radius:10px;width:100%;margin:6px 0 12px;resize:vertical}
+button.sm{min-height:36px;padding:4px 12px;font-size:13px}
+.msg{border-left:4px solid #2f7d4f;background:#f3faf5;border-radius:8px;padding:8px 12px;margin:8px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.warning{border-color:#b02a2a;background:#fdeeee}.msg.new{box-shadow:0 0 0 2px #f0c24b88}
+.opt.bad{border-color:#b02a2a;background:#fdeaea;cursor:default}.opt.bad i{background:#b02a2a;color:#fff}
+.rv{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:6px}
+.psg{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:8px 0}.ps{border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff;font-size:14px}
+.bar2{height:8px;background:#eee;border-radius:6px;overflow:hidden;margin:6px 0}.bar2 i{display:block;height:100%;border-radius:6px}.bar2 i.g{background:#2f9d5f}.bar2 i.y{background:#e0a800}.bar2 i.r{background:#c0392b}
 </style></head><body>
 <header><div class="logo">中</div><b>Zhongwenfy</b><span class="sp"></span><span id="who"></span></header>
 <main id="app"><p class="mut">Memuat…</p></main>
@@ -134,11 +144,52 @@ async function studentHome(){
       <label>Username kamu (nama yang dilihat laoshi)</label><input id="un" maxlength="30"><button id="go">Masuk Kelas</button></div>`;
     return $('#go').onclick = async () => { const {error}=await db.rpc('zw_join_class',{p_code:$('#code').value,p_username:$('#un').value}); error?err(error):studentHome(); };
   }
-  const {data:at} = await db.from('zw_attempts').select('bab,score,total').eq('student_id',me.id);
+  const [{data:at},{data:ms},{data:rd}] = await Promise.all([
+    db.from('zw_attempts').select('bab,score,total').eq('student_id',me.id),
+    db.from('zw_messages').select('id,kind,body,created_at').eq('class_id',m.class_id).order('created_at',{ascending:false}).limit(20),
+    db.from('zw_msg_reads').select('message_id').eq('student_id',me.id)]);
   const d = {}; (at||[]).forEach(a => d[a.bab]=a);
-  app.innerHTML = `<div class="card"><h2>${esc(m.zw_classes?.name)} <small class="mut">· ${esc(m.username)}</small></h2><h3>模拟测验 · Pilih Bab</h3><div class="babs">${BAB_NOS.map(b=>{const a=d[b];
-    return `<div class="card"><b>Bab ${b}</b><br>${a?`<span class="sc">${a.score}/${a.total}</span> <span class="pill ${cls(pct(a.score,a.total))}">${pct(a.score,a.total)}%</span><br><span class="mut">selesai</span>`:BABS[b]?`<button data-b="${b}">Mulai</button>`:'<span class="mut">segera hadir</span>'}</div>`}).join('')}</div></div>`;
+  const seen = new Set((rd||[]).map(r=>r.message_id)), msgs = ms||[], unread = msgs.filter(x=>!seen.has(x.id));
+  const notif = msgs.length ? `<div class="card"><h3>🔔 Pemberitahuan ${unread.length?`<span class="pill r">${unread.length} baru</span>`:''}</h3>${msgs.slice(0,6).map(x=>
+      `<div class="msg ${x.kind}${seen.has(x.id)?'':' new'}"><b>${x.kind==='warning'?'⚠️ Peringatan dari Laoshi':'📩 Pesan dari Laoshi'}</b><div>${esc(x.body)}</div><span class="mut">${new Date(x.created_at).toLocaleString()}</span></div>`).join('')}
+      ${unread.length?'<button class="o" id="rd">Tandai sudah dibaca</button>':''}</div>` : '';
+  app.innerHTML = `<div class="card"><h2>${esc(m.zw_classes?.name)} <small class="mut">· ${esc(m.username)}</small></h2></div>${notif}
+    <div class="card"><h3>模拟测验 · Pilih Bab</h3><div class="babs">${BAB_NOS.map(b=>{const a=d[b];
+    return `<div class="card"><b>Bab ${b}</b><br>${a?`<span class="sc">${a.score}/${a.total}</span> <span class="pill ${cls(pct(a.score,a.total))}">${pct(a.score,a.total)}%</span><br><button class="o sm" data-r="${b}">Lihat laporan</button>`:BABS[b]?`<button data-b="${b}">Mulai</button>`:'<span class="mut">segera hadir</span>'}</div>`}).join('')}</div></div>`;
   document.querySelectorAll('button[data-b]').forEach(b => b.onclick = () => { if(confirm('Mulai Bab '+b.dataset.b+'?\n• Hanya bisa dikerjakan SEKALI.\n• Jangan pindah tab/aplikasi: peringatan maksimal 3x, lalu otomatis dikumpulkan.')) startTest(+b.dataset.b); });
+  document.querySelectorAll('button[data-r]').forEach(b => b.onclick = () => report(+b.dataset.r));
+  const rdb=$('#rd'); if(rdb) rdb.onclick = async () => { const {error}=await db.from('zw_msg_reads').insert(unread.map(x=>({message_id:x.id,student_id:me.id}))); error?err(error):studentHome(); };
+  chan = db.channel('stu'+me.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'zw_messages',filter:'class_id=eq.'+m.class_id},p=>{
+    toast((p.new.kind==='warning'?'⚠️ Peringatan dari Laoshi: ':'📩 Pesan dari Laoshi: ')+String(p.new.body).slice(0,90)); studentHome(); }).subscribe();
+}
+
+// ===== Laporan hasil siswa =====
+const SEC_LABEL = {L1:'Listening 1',L2:'Listening 2',L3:'Listening 3',L4:'Listening 4',R1:'Reading 1',R2:'Reading 2',R3:'Reading 3',R4:'Reading 4'};
+async function report(bab){
+  leave();
+  const [{data:a},{data:key}] = await Promise.all([ db.from('zw_attempts').select('*').eq('student_id',me.id).eq('bab',bab).maybeSingle(), db.rpc('zw_review',{p_bab:bab}) ]);
+  if(!a||!key){ err('Laporan belum tersedia.'); return studentHome(); }
+  const B=BABS[bab], p=pct(a.score,a.total), P=a.parts;
+  const grp=ids=>{let c=0,t=0;ids.forEach(i=>{c+=P[i][0];t+=P[i][1]});return pct(c,t)};
+  const lis=grp(['L1','L2','L3','L4']), rea=grp(['R1','R2','R3','R4']);
+  const wrong=B.qs.filter(q=>a.answers[q.n]!==key[q.n-1]);
+  const item=(s,q,k)=>s.kind==='shared'?B.shared[s.id].items['ABCD'.indexOf(k)]:q.opts['ABCD'.indexOf(k)];
+  const chip=(s,q,k,c)=>{const it=item(s,q,k);return it?optHTML(it,k,0).replace('class="opt','class="opt '+c):''};
+  const verdict=p>=80?'🎉 Bagus sekali! Pertahankan.':p>=60?'👍 Cukup baik. Pelajari soal yang salah di bawah, lalu ulangi bagian yang lemah.':'💪 Masih perlu belajar. Dengarkan lagi rekaman dan pelajari setiap soal yang salah di bawah.';
+  app.innerHTML=`<div class="card test nocopy" id="tst" style="--fs:16px"><button class="o" id="bk">← Daftar bab</button>
+   <h2>Laporan Bab ${bab}</h2>
+   <div class="score"><span class="pill ${cls(p)}" style="font-size:22px;padding:4px 16px">${a.score}/${a.total} · ${p}%</span>
+    <p class="mut" style="font-size:.8em">⏱ ${mmss(a.seconds)} · pindah tab: ${a.auto_submitted?'3x (dikumpulkan otomatis)':a.violations||0}</p><p>${verdict}</p></div>
+   <div class="psg"><div class="ps"><b>🎧 Listening</b><div class="bar2"><i class="${cls(lis)}" style="width:${lis}%"></i></div><b>${lis}%</b></div>
+    <div class="ps"><b>📖 Reading</b><div class="bar2"><i class="${cls(rea)}" style="width:${rea}%"></i></div><b>${rea}%</b></div></div>
+   <h3>Nilai per bagian</h3><div class="psg">${SECS.map(s=>{const [c,t]=P[s.id],pp=pct(c,t);return `<div class="ps"><b>${SEC_LABEL[s.id]}</b> <span class="mut">soal ${s.from}–${s.to}</span><div class="bar2"><i class="${cls(pp)}" style="width:${pp}%"></i></div>${c}/${t} · <b>${pp}%</b></div>`}).join('')}</div>
+   <h3>Rekaman bab ini</h3><audio controls preload="none" controlsList="nodownload" src="${B.audio}"></audio>
+   <h3>Soal yang perlu dipelajari (${wrong.length})</h3>
+   ${wrong.length?wrong.map(q=>{const s=SECS.find(s=>q.n>=s.from&&q.n<=s.to),mine=a.answers[q.n];
+     return `<div class="q"><h4>SOAL ${q.n} · ${SEC_LABEL[s.id]}</h4>${q.zh?stem(q):'<div class="en">🎧 Soal dari rekaman: dengarkan lagi audio di atas, lalu bandingkan dengan jawaban benar.</div>'}
+      <div class="rv"><div><small class="mut">Jawabanmu</small>${mine?chip(s,q,mine,'bad'):'<div class="mut">tidak dijawab</div>'}</div><div><small class="mut">Jawaban benar</small>${chip(s,q,key[q.n-1],'ok')}</div></div></div>`}).join(''):'<p>✅ Semua jawabanmu benar!</p>'}</div>`;
+  const t=$('#tst'); ['copy','cut','contextmenu','selectstart','dragstart'].forEach(ev=>t.addEventListener(ev,e=>e.preventDefault()));
+  $('#bk').onclick=studentHome; scrollTo(0,0);
 }
 
 // ===== Tampilan soal =====
@@ -191,7 +242,7 @@ function startTest(bab){
     const {data,error}=await db.rpc('zw_submit',{p_bab:bab,p_answers:ans,p_seconds:Math.floor((Date.now()-t0)/1000),p_violations:vio,p_auto:auto});
     if(error){ done=false; $('#sub').disabled=false; return err(error); }
     ['ans_','t_','vio_'].forEach(p=>LS.del(p+bab)); leave();
-    modal(`${auto?'Waktu/pelanggaran: jawaban dikumpulkan <b>otomatis</b>.<br>':''}Selesai! Nilai: <b>${data.score}/${data.total}</b>`,studentHome);
+    auto ? modal('Jawabanmu dikumpulkan <b>otomatis</b> karena berpindah tab 3 kali.<br>Nilai: <b>'+data.score+'/'+data.total+'</b>',()=>report(bab)) : report(bab);
   }
   $('#sub').onclick=()=>{ const left=20-Object.keys(ans).length;
     if(confirm(left?`Masih ${left} soal belum dijawab. Kumpulkan? Bab ini TIDAK bisa diulang.`:'Kumpulkan jawaban? Bab ini tidak bisa diulang.')){ $('#sub').disabled=true; finish(false); } };
@@ -209,28 +260,48 @@ async function teacherHome(){
     const {error}=await db.from('zw_classes').insert({name,code,teacher_id:me.id}); error?err(String(error.message).includes('duplicate')?'Kode itu sudah dipakai, pilih kode lain.':error):teacherHome(); };
 }
 async function dash(c){
-  leave(); let M=[],A=[],E=[],view='sum',bab=4;
-  const load=async()=>{ const [m,a,e]=await Promise.all([db.from('zw_members').select('student_id,username').eq('class_id',c.id).order('username'),
+  leave(); let M=[],A=[],E=[],MS=[],view='sum',bab=4;
+  const load=async()=>{ const [m,a,e,g]=await Promise.all([db.from('zw_members').select('student_id,username').eq('class_id',c.id).order('username'),
       db.from('zw_attempts').select('id,student_id,bab,score,total,parts,seconds,violations,auto_submitted').eq('class_id',c.id),
-      db.from('zw_events').select('student_id,bab,kind,n,created_at').eq('class_id',c.id).order('created_at',{ascending:false}).limit(30)]);
-    M=m.data||[];A=a.data||[];E=e.data||[]; draw(); };
+      db.from('zw_events').select('student_id,bab,kind,n,created_at').eq('class_id',c.id).order('created_at',{ascending:false}).limit(30),
+      db.from('zw_messages').select('id,student_id,kind,body,created_at').eq('class_id',c.id).order('created_at',{ascending:false}).limit(10)]);
+    M=m.data||[];A=a.data||[];E=e.data||[];MS=g.data||[]; draw(); };
   const nm=id=>esc(M.find(m=>m.student_id===id)?.username||'?');
   const evText=e=>e.kind==='auto'?`🚨 <b>${nm(e.student_id)}</b> pindah tab 3x → dikumpulkan otomatis (Bab ${e.bab})`:`⚠️ <b>${nm(e.student_id)}</b> pindah tab (${e.n}/3) di Bab ${e.bab}`;
-  function draw(){
-    const get=(s,b)=>A.find(a=>a.student_id===s&&a.bab===b);
-    let body;
-    if(view==='sum') body=M.length?`<div style="overflow:auto"><table><tr><th>Siswa</th>${BAB_NOS.map(b=>`<th>Bab ${b}</th>`).join('')}<th>Rata²</th></tr>`+M.map(s=>{const r=BAB_NOS.map(b=>get(s.student_id,b)),dn=r.filter(Boolean);
-      return `<tr><td>${esc(s.username)}</td>${r.map((a,i)=>a?`<td><span class="pill ${cls(pct(a.score,a.total))}">${pct(a.score,a.total)}%</span>${a.auto_submitted?' 🚨':a.violations?' ⚠️'+a.violations:''}</td>`:'<td class="mut">—</td>').join('')}<td class="sc">${dn.length?Math.round(dn.reduce((x,a)=>x+pct(a.score,a.total),0)/dn.length)+'%':'—'}</td></tr>`}).join('')+'</table></div>':'<p class="mut">Belum ada siswa.</p>';
-    else { const P=['L1','L2','L3','L4','R1','R2','R3','R4'], sum=(a,ks)=>{let c=0,t=0;ks.forEach(k=>{c+=a.parts[k][0];t+=a.parts[k][1]});return pct(c,t)};
-      body=`<label>Pilih bab: <select id="bs" style="width:auto">${BAB_NOS.map(b=>`<option ${b===bab?'selected':''}>${b}</option>`).join('')}</select></label><div style="overflow:auto"><table><tr><th>Siswa</th>${P.map(p=>`<th>${p}</th>`).join('')}<th>听力 %</th><th>阅读 %</th><th>Total</th><th>Waktu</th><th>Pindah tab</th><th></th></tr>`+M.map(s=>{const a=get(s.student_id,bab);
+  const get=(s,b)=>A.find(a=>a.student_id===s&&a.bab===b);
+  const sumBody=()=>M.length?`<div style="overflow:auto"><table><tr><th>Siswa</th>${BAB_NOS.map(b=>`<th>Bab ${b}</th>`).join('')}<th>Rata²</th></tr>`+M.map(s=>{const r=BAB_NOS.map(b=>get(s.student_id,b)),dn=r.filter(Boolean);
+      return `<tr><td>${esc(s.username)}</td>${r.map(a=>a?`<td><span class="pill ${cls(pct(a.score,a.total))}">${pct(a.score,a.total)}%</span>${a.auto_submitted?' 🚨':a.violations?' ⚠️'+a.violations:''}</td>`:'<td class="mut">—</td>').join('')}<td class="sc">${dn.length?Math.round(dn.reduce((x,a)=>x+pct(a.score,a.total),0)/dn.length)+'%':'—'}</td></tr>`}).join('')+'</table></div>':'<p class="mut">Belum ada siswa.</p>';
+  const detBody=()=>{ const P=['L1','L2','L3','L4','R1','R2','R3','R4'], sum=(a,ks)=>{let c=0,t=0;ks.forEach(k=>{c+=a.parts[k][0];t+=a.parts[k][1]});return pct(c,t)};
+    return `<label>Pilih bab: <select id="bs" style="width:auto">${BAB_NOS.map(b=>`<option ${b===bab?'selected':''}>${b}</option>`).join('')}</select></label><div style="overflow:auto"><table><tr><th>Siswa</th>${P.map(p=>`<th>${p}</th>`).join('')}<th>听力 %</th><th>阅读 %</th><th>Total</th><th>Waktu</th><th>Pindah tab</th><th></th></tr>`+M.map(s=>{const a=get(s.student_id,bab);
       return a?`<tr><td>${esc(s.username)}</td>${P.map(p=>`<td>${a.parts[p][0]}/${a.parts[p][1]}<br><span class="mut">${pct(...a.parts[p])}%</span></td>`).join('')}<td><span class="pill ${cls(sum(a,P.slice(0,4)))}">${sum(a,P.slice(0,4))}%</span></td><td><span class="pill ${cls(sum(a,P.slice(4)))}">${sum(a,P.slice(4))}%</span></td><td><b>${a.score}/${a.total}</b> <span class="pill ${cls(pct(a.score,a.total))}">${pct(a.score,a.total)}%</span></td><td>${mmss(a.seconds)}</td><td>${a.auto_submitted?'🚨 auto':a.violations||0}</td><td><span class="link" data-r="${a.id}">aktifkan ulang</span></td></tr>`
-        :`<tr><td>${esc(s.username)}</td><td colspan="14" class="mut">belum mengerjakan</td></tr>`}).join('')+`</table></div><p class="mut" style="font-size:12px">L1–L4 = Listening bagian 1–4 · R1–R4 = Reading bagian 1–4</p>`; }
+        :`<tr><td>${esc(s.username)}</td><td colspan="14" class="mut">belum mengerjakan</td></tr>`}).join('')+`</table></div><p class="mut" style="font-size:12px">L1–L4 = Listening bagian 1–4 · R1–R4 = Reading bagian 1–4</p>`; };
+  const mgrBody=()=>`<h3>Kirim pesan ke siswa</h3><label>Kepada</label><select id="mto"><option value="">Semua siswa di kelas</option>${M.map(s=>`<option value="${s.student_id}">${esc(s.username)}</option>`).join('')}</select>
+    <label>Jenis</label><select id="mk"><option value="info">📩 Pesan</option><option value="warning">⚠️ Peringatan</option></select>
+    <label>Isi pesan (maks. 500 huruf)</label><textarea id="mb" rows="3" maxlength="500"></textarea><button id="msend">Kirim</button>
+    <h3>Daftar siswa</h3><div style="overflow:auto"><table><tr><th>Siswa</th><th>Bab selesai</th><th>Aksi</th></tr>${M.map(s=>`<tr><td>${esc(s.username)}</td><td>${A.filter(a=>a.student_id===s.student_id).length}/12</td><td style="white-space:nowrap"><button class="o sm" data-m="${s.student_id}">💬 Pesan</button> <button class="o sm" data-k="${s.student_id}">🚪 Keluarkan</button></td></tr>`).join('')||'<tr><td colspan="3" class="mut">Belum ada siswa</td></tr>'}</table></div>
+    <h3>Riwayat pesan</h3>${MS.length?MS.map(g=>`<div class="msg ${g.kind}"><b>${g.kind==='warning'?'⚠️ Peringatan':'📩 Pesan'} ${g.student_id?'untuk '+nm(g.student_id):'untuk semua siswa'}</b><div>${esc(g.body)}</div><span class="mut">${new Date(g.created_at).toLocaleString()}</span> <span class="link" data-dm="${g.id}">hapus</span></div>`).join(''):'<p class="mut">Belum ada pesan.</p>'}
+    <h3 style="color:#a12020">Zona berbahaya</h3><button class="o" id="dc">🗑️ Hapus kelas ini</button>`;
+  function draw(){
+    const keep = view==='mgr' ? {to:$('#mto')?.value,k:$('#mk')?.value,b:$('#mb')?.value} : null;
+    const body = view==='sum'?sumBody():view==='det'?detBody():mgrBody();
     app.innerHTML=`<div class="card"><button class="o" id="bk">← Kelas saya</button> <h2 style="display:inline;margin-left:12px">${esc(c.name)}</h2> · kode <b style="color:var(--red);letter-spacing:2px">${esc(c.code)}</b> · ${M.length} siswa</div>
      <div class="card"><h3>Notifikasi</h3>${E.length?E.slice(0,8).map(e=>`<div style="font-size:14px;margin:3px 0">${evText(e)} <span class="mut">${new Date(e.created_at).toLocaleTimeString()}</span></div>`).join(''):'<span class="mut">Belum ada pelanggaran.</span>'}</div>
-     <div class="card"><div class="tabs"><button class="${view==='sum'?'':'o'}" data-v="sum">Ringkasan semua bab</button><button class="${view==='det'?'':'o'}" data-v="det">Detail per bab & bagian</button></div>${body}</div>`;
+     <div class="card"><div class="tabs"><button class="${view==='sum'?'':'o'}" data-v="sum">Ringkasan semua bab</button><button class="${view==='det'?'':'o'}" data-v="det">Detail per bab & bagian</button><button class="${view==='mgr'?'':'o'}" data-v="mgr">Siswa & Pesan</button></div>${body}</div>`;
+    if(keep&&keep.b!==undefined){ if(keep.to!==undefined)$('#mto').value=keep.to; if(keep.k)$('#mk').value=keep.k; $('#mb').value=keep.b; }
     $('#bk').onclick=teacherHome; document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{view=b.dataset.v;draw()});
     const bs=$('#bs'); if(bs) bs.onchange=()=>{bab=+bs.value;draw()};
     document.querySelectorAll('[data-r]').forEach(l=>l.onclick=async()=>{ if(!confirm('Hapus nilai bab ini agar siswa bisa mengerjakan ulang?')) return; const {error}=await db.from('zw_attempts').delete().eq('id',l.dataset.r); error?err(error):load(); });
+    if(view==='mgr'){
+      $('#msend').onclick=async()=>{ const body=$('#mb').value.trim(); if(!body) return alert('Tulis isi pesan dulu.');
+        const {error}=await db.from('zw_messages').insert({class_id:c.id,student_id:$('#mto').value||null,sender:me.id,kind:$('#mk').value,body}); if(error) return err(error); $('#mb').value=''; toast('✅ Pesan terkirim'); load(); };
+      document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{$('#mto').value=b.dataset.m;$('#mb').focus();$('#mb').scrollIntoView({block:'center'})});
+      document.querySelectorAll('[data-k]').forEach(b=>b.onclick=async()=>{ const n=M.find(m=>m.student_id===b.dataset.k)?.username;
+        if(!confirm(`Keluarkan "${n}" dari kelas?\nSemua nilai dan pesannya di kelas ini ikut terhapus. Siswa bisa bergabung lagi dengan kode kelas.`)) return;
+        const {error}=await db.rpc('zw_remove_student',{p_class:c.id,p_student:b.dataset.k}); error?err(error):load(); });
+      document.querySelectorAll('[data-dm]').forEach(l=>l.onclick=async()=>{ const {error}=await db.from('zw_messages').delete().eq('id',l.dataset.dm); error?err(error):load(); });
+      $('#dc').onclick=async()=>{ const t=prompt(`Menghapus kelas "${c.name}" akan menghapus SEMUA siswa, nilai, dan pesan di dalamnya. Tindakan ini tidak bisa dibatalkan.\n\nKetik HAPUS untuk melanjutkan:`);
+        if(t!=='HAPUS') return; const {error}=await db.from('zw_classes').delete().eq('id',c.id); error?err(error):teacherHome(); };
+    }
   }
   await load(); let tm; const soon=()=>{clearTimeout(tm);tm=setTimeout(load,500)};   // jeda 0,5 dtk agar tidak membanjiri database
   const f='class_id=eq.'+c.id;
