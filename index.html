@@ -74,9 +74,11 @@ async function boot(){
   leave();
   const {data:{session}} = await db.auth.getSession();
   if(!session){ $('#who').innerHTML=''; return loginScreen(); }
-  me = session.user;
+  const {data:gu,error:ge} = await db.auth.getUser();            // cek ke server: sesi lama/kedaluwarsa dibuang
+  if(ge||!gu?.user){ await db.auth.signOut(); return loginScreen(); }
+  me = gu.user;
   $('#who').innerHTML = `${esc(me.user_metadata?.full_name||me.email)} <button class="o" id="lo">Keluar</button>`;
-  $('#lo').onclick = async () => { await db.auth.signOut(); boot(); };
+  $('#lo').onclick = async () => { await db.auth.signOut(); location.href = location.origin + location.pathname; };
   const {data,error} = await db.from('zw_profiles').select('*').eq('id',me.id).maybeSingle();
   if(error) return err(error);
   prof = data; if(!prof) return roleScreen();
