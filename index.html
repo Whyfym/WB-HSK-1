@@ -1,157 +1,212 @@
 <!DOCTYPE html>
 <html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Zhongwenfy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <style>
-:root{--red:#8b1a1a;--cream:#f9f5f0;--line:#e6dccb;--ink:#222}
-*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:system-ui,"Noto Sans SC",sans-serif}
-header{background:var(--red);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px}
-.logo{width:38px;height:38px;border-radius:9px;background:#fff;color:var(--red);font:700 24px serif;display:grid;place-items:center}
-header b{font-size:20px}header .sp{flex:1}
-main{max-width:1000px;margin:0 auto;padding:18px}
+:root{--red:#8b1a1a;--cream:#f9f5f0;--line:#e6dccb;--ink:#222;--fs:18px}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:"Noto Sans","Noto Sans SC",system-ui,sans-serif}
+header{background:var(--red);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:5}
+.logo{width:38px;height:38px;border-radius:9px;background:#fff;color:var(--red);font:700 24px "Noto Sans SC";display:grid;place-items:center}
+header b{font-size:20px}.sp{flex:1}header button{padding:6px 14px;font-size:13px}
+main{max-width:1050px;margin:0 auto;padding:18px}
 .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px}
 button{font:inherit;cursor:pointer;border:0;border-radius:999px;padding:10px 20px;background:var(--red);color:#fff;font-weight:600}
 button.o{background:#fff;color:var(--red);border:1px solid var(--red)}button:disabled{opacity:.4;cursor:default}
-input{font:inherit;padding:10px 14px;border:1px solid var(--line);border-radius:10px;width:100%;margin:6px 0 12px}
-.row{display:flex;gap:12px;flex-wrap:wrap}.row>.card{flex:1;min-width:260px}
-.sec{background:#f8efe9;border-radius:10px;padding:10px 14px;margin:18px 0 10px;font:600 17px serif}
-.q{border-top:1px solid var(--line);padding:12px 0}.q h4{margin:0 0 6px;font-size:12px;color:#777}
-.zh{font:20px serif;margin-bottom:8px}.py{font-size:12px;color:#b04040}
+input,select{font:inherit;padding:10px 14px;border:1px solid var(--line);border-radius:10px;width:100%;margin:6px 0 12px;background:#fff}
+.row{display:flex;gap:12px;flex-wrap:wrap}.row>.card{flex:1;min-width:260px}.mut{color:#999}.sc{font-weight:700}
+.gbtn{background:#fff;color:#333;border:1px solid #ccc;display:inline-flex;gap:10px;align-items:center;padding:12px 22px}
+/* ===== tes ===== */
+.layout{display:grid;grid-template-columns:1fr 260px;gap:16px}@media(max-width:820px){.layout{grid-template-columns:1fr}}
+.side{position:sticky;top:64px;align-self:start}
+.test{font-size:var(--fs);line-height:1.5}
+.nocopy,.nocopy *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.sec{background:#f8efe9;border-radius:10px;padding:10px 14px;margin:26px 0 8px;font:700 1.05em "Noto Sans SC"}.sec small{display:block;font:400 .7em "Noto Sans";color:#777;margin-top:2px}
+.how{background:#eef6ee;border-left:4px solid #2f7d4f;padding:8px 12px;font-size:.78em;border-radius:6px;margin-bottom:10px}
+.ex{border:1.5px dashed #d8c9a5;background:#fbf8ef;border-radius:12px;padding:12px 14px;margin:8px 0 12px}
+.ex h5{margin:0 0 6px;font:700 .65em "Noto Sans";letter-spacing:.08em;color:#7a6320}
+.zh{font:500 1.15em "Noto Sans SC";margin-bottom:6px}.py{font:.62em "Noto Sans";color:#b04040;line-height:1.2}.en{font-size:.7em;color:#777;font-style:italic}
+.q{border-top:1px solid var(--line);padding:12px 0}.q h4{margin:0 0 6px;font-size:.62em;color:#777;letter-spacing:.05em}
 .opts{display:flex;gap:10px;flex-wrap:wrap}
-.opt{border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer;display:flex;gap:8px;align-items:center;background:#fff;min-width:80px}
-.opt i{font:700 12px system-ui;width:22px;height:22px;border-radius:50%;background:#f4ead9;display:grid;place-items:center}
+.opt{border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer;display:flex;gap:8px;align-items:center;background:#fff;min-width:72px}
+.opt i{font:700 .65em "Noto Sans";width:24px;height:24px;border-radius:50%;background:#f4ead9;display:grid;place-items:center;font-style:normal;flex:none}
 .opt.on{border-color:var(--red);background:#fbeaea}.opt.on i{background:var(--red);color:#fff}
-.img{width:120px;height:80px;background:#eee;display:grid;place-items:center;font-size:11px;color:#999;border-radius:6px;overflow:hidden}
-.img img{width:100%;height:100%;object-fit:cover}
-.layout{display:grid;grid-template-columns:1fr 250px;gap:16px}@media(max-width:800px){.layout{grid-template-columns:1fr}}
-.side{position:sticky;top:10px;align-self:start}
-.nav{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.nav a{border:1px solid var(--line);border-radius:8px;text-align:center;padding:7px 0;font-size:13px;text-decoration:none;color:#555;background:#fff}
-.nav a.d{background:var(--red);color:#fff;border-color:var(--red)}
-table{border-collapse:collapse;width:100%;font-size:14px}td,th{border:1px solid var(--line);padding:6px 8px;text-align:center}th{background:#f8efe9}td:first-child{text-align:left}
-.sc{font-weight:700}.mut{color:#999}.link{color:var(--red);cursor:pointer;text-decoration:underline;font-size:12px}
-.big{font:700 28px monospace;letter-spacing:4px;color:var(--red)}audio{width:100%}
+.opt.ok{border-color:#2f7d4f;background:#e9f6ee;cursor:default}.opt.ok i{background:#2f7d4f;color:#fff}
+.opt img,.sh img{width:150px;height:96px;object-fit:cover;border-radius:6px;pointer-events:none}.opt.big{padding:6px 10px}
+.shared{display:flex;gap:10px;flex-wrap:wrap;background:#faf6ee;border:1px solid var(--line);border-radius:12px;padding:12px;margin:8px 0}
+.sh{display:flex;gap:8px;align-items:center;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 12px}.sh.ex{border:1.5px solid #2f7d4f;background:#e9f6ee;margin:0}
+.sh i{font:700 .65em "Noto Sans";width:24px;height:24px;border-radius:50%;background:#f4ead9;display:grid;place-items:center;font-style:normal;flex:none}.sh em{font-size:.6em;color:#2f7d4f;font-style:normal;font-weight:700}
+.nav{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:10px 0}.nav a{border:1px solid var(--line);border-radius:8px;text-align:center;padding:7px 0;font-size:13px;color:#555;background:#fff;cursor:pointer}
+.nav a.d{background:var(--red);color:#fff;border-color:var(--red)}audio{width:100%}
+.fz{display:flex;gap:6px;align-items:center;margin:8px 0}.fz button{padding:4px 12px}
+.modal{position:fixed;inset:0;background:#0007;display:grid;place-items:center;z-index:20}.modal>div{background:#fff;border-radius:14px;padding:22px;max-width:420px}
+.toast{position:fixed;right:14px;bottom:14px;background:#b02a2a;color:#fff;padding:10px 16px;border-radius:10px;z-index:30;max-width:320px}
+/* ===== dashboard ===== */
+table{border-collapse:collapse;width:100%;font-size:13px}td,th{border:1px solid var(--line);padding:5px 7px;text-align:center}th{background:#f8efe9}td:first-child,th:first-child{text-align:left;position:sticky;left:0;background:#fff}
+.tabs{display:flex;gap:8px;margin-bottom:10px}.tabs button{padding:6px 16px}.link{color:var(--red);cursor:pointer;text-decoration:underline;font-size:12px}
+.pill{display:inline-block;border-radius:999px;padding:1px 8px;font-size:12px;font-weight:700}.g{background:#e3f4e8;color:#1f6b3d}.y{background:#fff3cd;color:#8a6d00}.r{background:#fde2e2;color:#a12020}
 </style></head><body>
 <header><div class="logo">中</div><b>Zhongwenfy</b><span class="sp"></span><span id="who"></span></header>
-<main id="app"></main>
-<script src="kunci.js"></script>
+<main id="app"><p class="mut">Memuat…</p></main>
 <script src="soal.js"></script>
 <script>
-// ====== ISI 2 BARIS INI (lihat PANDUAN.md langkah 4) ======
-const SUPABASE_URL = "https://ytvycqkphawrltxjbxzl.supabase.co";
-const SUPABASE_KEY = "sb_publishable_qs3flCEPv3VX6yc7iyW7GA_o-PbXNAf";
-// =========================================================
+// ====== ISI 2 BARIS INI (PANDUAN.md, Langkah 2) ======
+const SUPABASE_URL = "ISI_URL_PROJECT_SUPABASE";
+const SUPABASE_KEY = "ISI_ANON_PUBLIC_KEY";
+// =====================================================
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const $ = s => document.querySelector(s), app = $('#app');
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const LS = { get:k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}}, set:(k,v)=>localStorage.setItem(k,JSON.stringify(v)), del:k=>localStorage.removeItem(k) };
-const BAB_NOS = Object.keys(BABS).length ? Array.from({length:12},(_,i)=>i+4) : [];
-let chan = null, timer = null;
-const rnd = (n,al) => Array.from({length:n},()=>al[Math.floor(Math.random()*al.length)]).join('');
-const fail = e => alert('Terjadi masalah: ' + (e.message || e));
+const LS = { get:k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}}, set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}}, del:k=>{try{localStorage.removeItem(k)}catch{}} };
+const BAB_NOS = Array.from({length:12},(_,i)=>i+4);
+const pct = (c,t) => t ? Math.round(c/t*100) : 0;
+const cls = p => p>=80?'g':p>=60?'y':'r';
+const mmss = s => s==null?'—':Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+let me=null, prof=null, chan=null, timer=null, cleanup=()=>{};
+const err = e => alert('Terjadi masalah: ' + (e?.message || e));
+function modal(html, cb){ const m=document.createElement('div'); m.className='modal'; m.innerHTML=`<div>${html}<p style="text-align:right"><button>OK</button></p></div>`; document.body.appendChild(m); m.querySelector('button').onclick=()=>{m.remove(); cb&&cb()}; }
+function toast(t){ const d=document.createElement('div'); d.className='toast'; d.textContent=t; document.body.appendChild(d); setTimeout(()=>d.remove(),7000); }
+function leave(){ clearInterval(timer); cleanup(); cleanup=()=>{}; if(chan){db.removeChannel(chan);chan=null} }
 
-function home(){
-  clearInterval(timer); if(chan){db.removeChannel(chan);chan=null}
-  $('#who').textContent = '';
-  const t = LS.get('teacher'), s = LS.get('student');
-  app.innerHTML = `<div class="row">
-   <div class="card"><h2>我是老师 · Laoshi</h2>
-    ${t?`<p>Kelas terakhir: <b>${esc(t.name)}</b></p><button id="tOpen">Buka Dashboard</button><hr>`:''}
-    <label>Buat kelas baru</label><input id="cname" placeholder="Nama kelas, mis. HSK 1 Kelas A"><button id="tNew">Buat Kelas</button>
-    <hr><label>Sudah punya kelas? Masukkan Kunci Laoshi</label><input id="tkey" placeholder="Kunci laoshi"><button class="o" id="tIn">Masuk Dashboard</button></div>
-   <div class="card"><h2>我是学生 · Siswa</h2>
-    <label>Kode kelas</label><input id="code" maxlength="6" placeholder="mis. K7M2QX" style="text-transform:uppercase" value="${s?esc(s.code):''}">
-    <label>Username kamu</label><input id="uname" placeholder="Nama / username" value="${s?esc(s.username):''}">
-    <button id="sIn">Masuk Kelas</button></div></div>`;
-  $('#tNew').onclick = createClass; $('#tIn').onclick = () => openDash($('#tkey').value.trim());
-  if(t) $('#tOpen').onclick = () => openDash(t.key);
-  $('#sIn').onclick = joinClass;
+// ===== Alur login =====
+async function boot(){
+  leave();
+  const {data:{session}} = await db.auth.getSession();
+  if(!session){ $('#who').innerHTML=''; return loginScreen(); }
+  me = session.user;
+  $('#who').innerHTML = `${esc(me.user_metadata?.full_name||me.email)} <button class="o" id="lo">Keluar</button>`;
+  $('#lo').onclick = async () => { await db.auth.signOut(); boot(); };
+  const {data,error} = await db.from('zw_profiles').select('*').eq('id',me.id).maybeSingle();
+  if(error) return err(error);
+  prof = data; if(!prof) return roleScreen();
+  prof.role==='teacher' ? teacherHome() : studentHome();
 }
-async function createClass(){
-  const name = $('#cname').value.trim(); if(!name) return alert('Isi nama kelas dulu.');
-  for(let i=0;i<5;i++){
-    const code = rnd(6,'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'), key = rnd(12,'abcdefghjkmnpqrstuvwxyz23456789');
-    const {data,error} = await db.from('classes').insert({name,code,teacher_key:key}).select().single();
-    if(!error){ LS.set('teacher',{key,name,id:data.id}); return openDash(key,true); }
-    if(!String(error.message).includes('duplicate')) return fail(error);
+function loginScreen(){
+  app.innerHTML = `<div class="card" style="max-width:460px;margin:40px auto;text-align:center"><div class="logo" style="margin:0 auto 10px;background:var(--red);color:#fff;width:64px;height:64px;font-size:40px">中</div>
+   <h2>Zhongwenfy</h2><p class="mut">Latihan & tes HSK 1</p><button class="gbtn" id="g"><svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.7c4.3-4 6.9-9.9 6.9-17.1z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.4-.8-2.9-.8-4.7s.3-3.3.8-4.7l-7.9-6.1C.9 16.4 0 20.1 0 24s.9 7.6 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.5 2.3-6.3 0-11.6-4-13.5-9.8l-7.9 6.1C6.500 42.600 14.600 48 24 48z"/></svg>Masuk dengan Google</button></div>`;
+  $('#g').onclick = () => db.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}});
+}
+function roleScreen(){
+  app.innerHTML = `<h2>Kamu masuk sebagai…</h2><div class="row">
+   <div class="card"><h2>老师 · Laoshi</h2><label>Kode laoshi</label><input id="tc" type="password" placeholder="Masukkan kode laoshi"><button id="bt">Masuk sebagai Laoshi</button></div>
+   <div class="card"><h2>学生 · Siswa</h2><p class="mut">Pilih ini jika kamu murid.</p><button id="bs">Masuk sebagai Siswa</button></div></div>`;
+  $('#bt').onclick = async () => { const {error}=await db.rpc('zw_become_teacher',{p_code:$('#tc').value.trim()}); error?err(error):boot(); };
+  $('#bs').onclick = async () => { const {error}=await db.rpc('zw_set_student'); error?err(error):boot(); };
+}
+
+// ===== Siswa =====
+async function studentHome(){
+  leave();
+  const {data:m} = await db.from('zw_members').select('username,class_id,zw_classes(name)').eq('student_id',me.id).maybeSingle();
+  if(!m){
+    app.innerHTML = `<div class="card" style="max-width:460px;margin:30px auto"><h2>Gabung Kelas</h2><label>Kode kelas dari laoshi</label><input id="code" maxlength="12" style="text-transform:uppercase">
+      <label>Username kamu (nama yang dilihat laoshi)</label><input id="un" maxlength="30"><button id="go">Masuk Kelas</button></div>`;
+    return $('#go').onclick = async () => { const {error}=await db.rpc('zw_join_class',{p_code:$('#code').value,p_username:$('#un').value}); error?err(error):studentHome(); };
   }
+  const {data:at} = await db.from('zw_attempts').select('bab,score,total').eq('student_id',me.id);
+  const d = {}; (at||[]).forEach(a => d[a.bab]=a);
+  app.innerHTML = `<div class="card"><h2>${esc(m.zw_classes?.name)} <small class="mut">· ${esc(m.username)}</small></h2><h3>模拟测验 · Pilih Bab</h3><div class="row">${BAB_NOS.map(b=>{const a=d[b];
+    return `<div class="card" style="min-width:140px;flex:0 0 140px"><b>Bab ${b}</b><br>${a?`<span class="sc">${a.score}/${a.total}</span> <span class="pill ${cls(pct(a.score,a.total))}">${pct(a.score,a.total)}%</span><br><span class="mut">selesai</span>`:BABS[b]?`<button data-b="${b}">Mulai</button>`:'<span class="mut">segera hadir</span>'}</div>`}).join('')}</div></div>`;
+  document.querySelectorAll('button[data-b]').forEach(b => b.onclick = () => { if(confirm('Mulai Bab '+b.dataset.b+'?\n• Hanya bisa dikerjakan SEKALI.\n• Jangan pindah tab/aplikasi: peringatan maksimal 3x, lalu otomatis dikumpulkan.')) startTest(+b.dataset.b); });
 }
-async function openDash(key,isNew){
-  const {data:c,error} = await db.from('classes').select('*').eq('teacher_key',key).maybeSingle();
-  if(error) return fail(error); if(!c) return alert('Kunci laoshi tidak ditemukan.');
-  LS.set('teacher',{key,name:c.name,id:c.id}); $('#who').textContent = '老师 · ' + c.name;
-  app.innerHTML = `<div class="card"><h2>${esc(c.name)}</h2>
-    <p>Kode kelas untuk siswa: <span class="big">${c.code}</span></p>
-    <p>Kunci laoshi (simpan, untuk masuk lagi): <b>${c.teacher_key}</b> ${isNew?'<span class="mut">← catat sekarang!</span>':''}</p>
-    <button class="o" id="back">Keluar</button></div>
-    <div class="card" style="overflow:auto"><h3>Progres siswa <small class="mut">(realtime)</small></h3><div id="tbl"></div></div>`;
-  $('#back').onclick = home;
-  const draw = async () => {
-    const [{data:st},{data:at}] = await Promise.all([
-      db.from('students').select('*').eq('class_id',c.id).order('username'),
-      db.from('attempts').select('*').eq('class_id',c.id)]);
-    const m = {}; (at||[]).forEach(a => m[a.student_id+'_'+a.bab] = a);
-    $('#tbl').innerHTML = !(st||[]).length ? '<p class="mut">Belum ada siswa yang masuk.</p>' :
-      `<table><tr><th>Siswa</th>${BAB_NOS.map(b=>`<th>Bab ${b}</th>`).join('')}<th>Rata²</th></tr>` +
-      st.map(s => { const sc = BAB_NOS.map(b=>m[s.id+'_'+b]);
-        const done = sc.filter(Boolean), avg = done.length ? Math.round(done.reduce((x,a)=>x+a.score/a.total*100,0)/done.length) : '—';
-        return `<tr><td>${esc(s.username)}</td>${sc.map((a,i)=>a?`<td><span class="sc">${a.score}/${a.total}</span><br><span class="link" data-id="${a.id}">aktifkan ulang</span></td>`:'<td class="mut">—</td>').join('')}<td class="sc">${avg}${avg!=='—'?'%':''}</td></tr>`}).join('') + '</table>';
-    document.querySelectorAll('.link').forEach(l => l.onclick = async () => {
-      if(!confirm('Hapus nilai bab ini agar siswa bisa mengerjakan ulang?')) return;
-      const {error} = await db.from('attempts').delete().eq('id',l.dataset.id); if(error) fail(error);
-    });
-  };
-  await draw();
-  chan = db.channel('dash').on('postgres_changes',{event:'*',schema:'public',table:'attempts',filter:'class_id=eq.'+c.id},draw)
-    .on('postgres_changes',{event:'*',schema:'public',table:'students',filter:'class_id=eq.'+c.id},draw).subscribe();
-}
-async function joinClass(){
-  const code = $('#code').value.trim().toUpperCase(), username = $('#uname').value.trim();
-  if(!code || !username) return alert('Isi kode kelas dan username.');
-  const {data:c,error} = await db.from('classes').select('id,name').eq('code',code).maybeSingle();
-  if(error) return fail(error); if(!c) return alert('Kode kelas tidak ditemukan.');
-  let {data:s} = await db.from('students').select('*').eq('class_id',c.id).ilike('username',username).maybeSingle();
-  if(!s){ const r = await db.from('students').insert({class_id:c.id,username}).select().single(); if(r.error) return fail(r.error); s = r.data; }
-  LS.set('student',{code,username:s.username,id:s.id,class_id:c.id,cname:c.name}); babList();
-}
-async function babList(){
-  const s = LS.get('student'); $('#who').textContent = s.username + ' · ' + s.cname;
-  const {data:at} = await db.from('attempts').select('bab,score,total').eq('student_id',s.id);
-  const m = {}; (at||[]).forEach(a => m[a.bab] = a);
-  app.innerHTML = `<div class="card"><h2>模拟测验 · Pilih Bab</h2><div class="row">${BAB_NOS.map(b => {
-    const a = m[b], ok = BABS[b];
-    return `<div class="card" style="min-width:150px;flex:0 0 150px"><b>Bab ${b}</b><br>${a?`<span class="sc">${a.score}/${a.total}</span><br><span class="mut">selesai</span>`:ok?'<button data-b="'+b+'">Mulai</button>':'<span class="mut">segera hadir</span>'}</div>`}).join('')}</div>
-    <button class="o" id="out">Keluar</button></div>`;
-  document.querySelectorAll('button[data-b]').forEach(b => b.onclick = () => startTest(+b.dataset.b));
-  $('#out').onclick = () => { LS.del('student'); home(); };
+
+// ===== Tampilan soal =====
+const optHTML = (o,k,n) => `<div class="opt${o.img?' big':''}" data-n="${n}" data-k="${k}"><i>${k}</i>${o.img?`<img loading="lazy" draggable="false" src="${esc(o.img)}">`:`<div>${o.py?`<div class="py">${esc(o.py)}</div>`:''}<div class="zh" style="margin:0">${esc(o.zh)}</div>${o.en?`<div class="en">${esc(o.en)}</div>`:''}</div>`}</div>`;
+const shHTML = (it,k,ex) => `<div class="sh${ex===k?' ex':''}"><i>${k}</i>${it.img?`<img loading="lazy" draggable="false" src="${esc(it.img)}">`:`<div><div class="py">${esc(it.py)}</div><div class="zh" style="margin:0">${esc(it.zh)}</div></div>`}${ex===k?'<em>✓ Contoh</em>':''}</div>`;
+const stem = (o,extra='') => `<div class="zh">${o.py?`<div class="py">${esc(o.py)}</div>`:''}${esc(o.zh||'')}</div>${extra}`;
+function exampleHTML(s,B){
+  const e=s.ex; let h=`<div class="ex"><h5>CONTOH · 例如</h5>`;
+  if(s.kind==='shared'){ const sh=B.shared[s.id]; h+=stem(e)+`<div class="en">${esc(e.en)}</div><p style="margin:6px 0 0;font-size:.75em">Jawaban contoh: <b>${sh.ex}</b></p>`; }
+  else { h+=stem(e)+`<div class="en">${esc(e.en)}</div>`+(e.q?`<div class="zh" style="margin-top:6px">${esc(e.q)}</div><div class="en">${esc(e.qen)}</div>`:'')
+    +`<div class="opts" style="margin-top:8px">${e.opts.map((o,i)=>{const k='ABC'[i];return optHTML(o,k,0).replace('class="opt','class="opt'+(k===e.a?' ok':'')).replace('<i>'+k+'</i>','<i>'+k+(k===e.a?' ✓':'')+'</i>')}).join('')}</div>`; }
+  return h+'</div>';
 }
 function startTest(bab){
-  const B = BABS[bab], ans = {}, t0 = Date.now(); let html = '', last = null;
-  B.qs.forEach(q => {
-    const sec = Object.keys(SEC).map(Number).filter(n => n <= q.n).pop();
-    if(sec !== last){ html += `<div class="sec">${SEC[sec]}</div>`; last = sec; }
-    html += `<div class="q" id="q${q.n}"><h4>SOAL ${q.n}</h4>${q.zh?`<div class="zh">${q.py?`<div class="py">${esc(q.py)}</div>`:''}${esc(q.zh)}</div>`:''}<div class="opts">` +
-      q.opts.map(o => `<div class="opt" data-n="${q.n}" data-k="${o.k}"><i>${o.k}</i>${o.img!==undefined?`<div class="img">${o.img&&typeof o.img==='string'?`<img src="${esc(o.img)}">`:'gambar'}</div>`:(o.py?`<div><div class="py">${esc(o.py)}</div>${esc(o.zh)}</div>`:esc(o.zh))}</div>`).join('') + '</div></div>';
+  leave();
+  const B=BABS[bab], ans=LS.get('ans_'+bab)||{}, t0=Date.now()-(LS.get('t_'+bab)||0)*1000;
+  let vio=LS.get('vio_'+bab)||0, done=false, warn=false, sizes=[14,16,18,20,24], si=LS.get('fs')??2;
+  let html='';
+  SECS.forEach(s=>{
+    const qs=B.qs.filter(q=>q.n>=s.from&&q.n<=s.to); if(!qs.length) return;
+    html+=`<div class="sec">${s.zh}<small>${esc(s.en)}</small></div><div class="how">📘 <b>Cara mengerjakan:</b> ${esc(s.how)}</div>`+exampleHTML(s,B);
+    const sh=B.shared[s.id], letters=sh?sh.items.map((_,i)=>'ABCD'[i]).filter(k=>k!==sh.ex):null;
+    if(sh) html+=`<div class="shared">${sh.items.map((it,i)=>shHTML(it,'ABCD'[i],sh.ex)).join('')}</div>`;
+    qs.forEach(q=>{ html+=`<div class="q" id="q${q.n}"><h4>SOAL ${q.n}</h4>${q.zh?stem(q):''}<div class="opts">`+
+      (sh?letters.map(k=>`<div class="opt" data-n="${q.n}" data-k="${k}"><i>${k}</i></div>`).join(''):q.opts.map((o,i)=>optHTML(o,'ABCD'[i],q.n)).join(''))+'</div></div>'; });
   });
-  app.innerHTML = `<div class="layout"><div class="card"><h2>模拟测验 · Bab ${bab}</h2>${html}</div><div class="side">
-    <div class="card"><b>REKAMAN UJIAN · 听力</b><audio controls src="${B.audio}"></audio></div>
-    <div class="card"><b>⏱ <span id="tm">00:00</span></b> · <span id="cnt">0</span>/${B.qs.length} terjawab
-    <div class="nav" style="margin:10px 0">${B.qs.map(q=>`<a href="#q${q.n}" id="n${q.n}">${q.n}</a>`).join('')}</div>
-    <button id="sub" style="width:100%">Kumpulkan Jawaban</button></div></div></div>`;
-  timer = setInterval(() => { const s = Math.floor((Date.now()-t0)/1000); $('#tm').textContent = String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }, 1000);
-  document.querySelectorAll('.opt').forEach(o => o.onclick = () => {
-    const n = o.dataset.n; ans[n] = o.dataset.k;
-    document.querySelectorAll(`.opt[data-n="${n}"]`).forEach(x => x.classList.toggle('on', x === o));
-    $('#n'+n).classList.add('d'); $('#cnt').textContent = Object.keys(ans).length;
-  });
-  $('#sub').onclick = async () => {
-    const left = B.qs.length - Object.keys(ans).length;
-    if(!confirm(left ? `Masih ${left} soal belum dijawab. Kumpulkan? Bab ini TIDAK bisa diulang.` : 'Kumpulkan jawaban? Bab ini tidak bisa diulang.')) return;
-    const s = LS.get('student'), score = B.qs.filter(q => ans[q.n] === KUNCI[bab][q.n-1]).length;
-    $('#sub').disabled = true; clearInterval(timer);
-    const {error} = await db.from('attempts').insert({class_id:s.class_id,student_id:s.id,bab,answers:ans,score,total:B.qs.length,seconds:Math.floor((Date.now()-t0)/1000)});
-    if(error){ $('#sub').disabled = false; return fail(String(error.message).includes('duplicate') ? 'Bab ini sudah pernah dikerjakan. Minta laoshi mengaktifkan ulang.' : error); }
-    alert(`Selesai! Nilai: ${score}/${B.qs.length}`); babList();
-  };
+  app.innerHTML=`<div class="layout"><div class="card test nocopy" id="tst"><h2 style="font-size:1.2em">模拟测验 · Bab ${bab}</h2>${html}</div><div class="side">
+   <div class="card"><b>REKAMAN UJIAN · 听力</b><audio controls controlsList="nodownload" preload="none" src="${B.audio}"></audio></div>
+   <div class="card"><b>⏱ <span id="tm">00:00</span></b> · <span id="cnt">0</span>/20 terjawab<div class="fz">Ukuran huruf: <button class="o" id="fm">A−</button><button class="o" id="fp">A+</button></div>
+   <div class="nav">${B.qs.map(q=>`<a data-g="${q.n}" id="n${q.n}">${q.n}</a>`).join('')}</div><button id="sub" style="width:100%">Kumpulkan Jawaban</button>
+   <p class="mut" style="font-size:12px">Pindah tab: <b id="vc">${vio}</b>/3</p></div></div></div>`;
+  const setFs=()=>$('#tst').style.setProperty('--fs',sizes[si]+'px'); setFs();
+  $('#fm').onclick=()=>{si=Math.max(0,si-1);LS.set('fs',si);setFs()}; $('#fp').onclick=()=>{si=Math.min(4,si+1);LS.set('fs',si);setFs()};
+  const mark=()=>{ document.querySelectorAll('.opt[data-k]').forEach(o=>o.classList.toggle('on',ans[o.dataset.n]===o.dataset.k)); B.qs.forEach(q=>$('#n'+q.n).classList.toggle('d',!!ans[q.n])); $('#cnt').textContent=Object.keys(ans).length; }; mark();
+  document.querySelectorAll('.opt[data-n]').forEach(o=>{ if(o.dataset.n!=='0') o.onclick=()=>{ ans[o.dataset.n]=o.dataset.k; LS.set('ans_'+bab,ans); mark(); } });
+  document.querySelectorAll('.nav a').forEach(a=>a.onclick=()=>$('#q'+a.dataset.g).scrollIntoView({behavior:'smooth',block:'center'}));
+  timer=setInterval(()=>{ const s=Math.floor((Date.now()-t0)/1000); LS.set('t_'+bab,s); $('#tm').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); },1000);
+  // --- anti salin ---
+  const stop=e=>e.preventDefault(), t=$('#tst');
+  ['copy','cut','contextmenu','selectstart','dragstart'].forEach(ev=>t.addEventListener(ev,stop));
+  const key=e=>{ if((e.ctrlKey||e.metaKey)&&'cxasup'.includes(e.key.toLowerCase())) e.preventDefault(); }; document.addEventListener('keydown',key);
+  // --- pindah tab ---
+  const vis=()=>{ if(done) return;
+    if(document.hidden){ vio++; LS.set('vio_'+bab,vio); $('#vc').textContent=vio; db.rpc('zw_log_event',{p_bab:bab,p_kind:vio>=3?'auto':'tab',p_n:vio}); if(vio>=3) finish(true); else warn=true; }
+    else if(warn){ warn=false; modal(`⚠️ <b>Peringatan ${vio}/3</b><br>Kamu berpindah tab/aplikasi. Laoshi mendapat pemberitahuan. Pada pelanggaran ke-3 jawabanmu akan dikumpulkan otomatis.`); } };
+  document.addEventListener('visibilitychange',vis);
+  cleanup=()=>{ document.removeEventListener('keydown',key); document.removeEventListener('visibilitychange',vis); };
+  async function finish(auto){
+    if(done) return; done=true;
+    const {data,error}=await db.rpc('zw_submit',{p_bab:bab,p_answers:ans,p_seconds:Math.floor((Date.now()-t0)/1000),p_violations:vio,p_auto:auto});
+    if(error){ done=false; $('#sub').disabled=false; return err(error); }
+    ['ans_','t_','vio_'].forEach(p=>LS.del(p+bab)); leave();
+    modal(`${auto?'Waktu/pelanggaran: jawaban dikumpulkan <b>otomatis</b>.<br>':''}Selesai! Nilai: <b>${data.score}/${data.total}</b>`,studentHome);
+  }
+  $('#sub').onclick=()=>{ const left=20-Object.keys(ans).length;
+    if(confirm(left?`Masih ${left} soal belum dijawab. Kumpulkan? Bab ini TIDAK bisa diulang.`:'Kumpulkan jawaban? Bab ini tidak bisa diulang.')){ $('#sub').disabled=true; finish(false); } };
 }
-home();
+
+// ===== Laoshi =====
+async function teacherHome(){
+  leave();
+  const {data:cs,error}=await db.from('zw_classes').select('*').eq('teacher_id',me.id).order('created_at'); if(error) return err(error);
+  app.innerHTML=`<div class="row"><div class="card"><h2>Kelas saya</h2>${(cs||[]).length?cs.map(c=>`<div class="card"><b>${esc(c.name)}</b> · kode: <b style="color:var(--red);letter-spacing:2px">${esc(c.code)}</b> <button data-c="${c.id}" style="float:right">Buka</button></div>`).join(''):'<p class="mut">Belum ada kelas.</p>'}</div>
+   <div class="card"><h2>Buat kelas baru</h2><label>Nama kelas</label><input id="cn" placeholder="mis. HSK 1 Kelas A"><label>Kode kelas (kamu yang menentukan, 4–12 huruf/angka)</label><input id="cc" maxlength="12" placeholder="mis. HSK1A2026" style="text-transform:uppercase"><button id="mk">Buat Kelas</button></div></div>`;
+  document.querySelectorAll('button[data-c]').forEach(b=>b.onclick=()=>dash(cs.find(c=>c.id===b.dataset.c)));
+  $('#mk').onclick=async()=>{ const name=$('#cn').value.trim(), code=$('#cc').value.trim().toUpperCase();
+    if(!name||!/^[A-Z0-9]{4,12}$/.test(code)) return alert('Isi nama kelas dan kode 4–12 huruf/angka (tanpa spasi).');
+    const {error}=await db.from('zw_classes').insert({name,code,teacher_id:me.id}); error?err(String(error.message).includes('duplicate')?'Kode itu sudah dipakai, pilih kode lain.':error):teacherHome(); };
+}
+async function dash(c){
+  leave(); let M=[],A=[],E=[],view='sum',bab=4;
+  const load=async()=>{ const [m,a,e]=await Promise.all([db.from('zw_members').select('student_id,username').eq('class_id',c.id).order('username'),
+      db.from('zw_attempts').select('id,student_id,bab,score,total,parts,seconds,violations,auto_submitted').eq('class_id',c.id),
+      db.from('zw_events').select('student_id,bab,kind,n,created_at').eq('class_id',c.id).order('created_at',{ascending:false}).limit(30)]);
+    M=m.data||[];A=a.data||[];E=e.data||[]; draw(); };
+  const nm=id=>esc(M.find(m=>m.student_id===id)?.username||'?');
+  const evText=e=>e.kind==='auto'?`🚨 <b>${nm(e.student_id)}</b> pindah tab 3x → dikumpulkan otomatis (Bab ${e.bab})`:`⚠️ <b>${nm(e.student_id)}</b> pindah tab (${e.n}/3) di Bab ${e.bab}`;
+  function draw(){
+    const get=(s,b)=>A.find(a=>a.student_id===s&&a.bab===b);
+    let body;
+    if(view==='sum') body=M.length?`<div style="overflow:auto"><table><tr><th>Siswa</th>${BAB_NOS.map(b=>`<th>Bab ${b}</th>`).join('')}<th>Rata²</th></tr>`+M.map(s=>{const r=BAB_NOS.map(b=>get(s.student_id,b)),dn=r.filter(Boolean);
+      return `<tr><td>${esc(s.username)}</td>${r.map((a,i)=>a?`<td><span class="pill ${cls(pct(a.score,a.total))}">${pct(a.score,a.total)}%</span>${a.auto_submitted?' 🚨':a.violations?' ⚠️'+a.violations:''}</td>`:'<td class="mut">—</td>').join('')}<td class="sc">${dn.length?Math.round(dn.reduce((x,a)=>x+pct(a.score,a.total),0)/dn.length)+'%':'—'}</td></tr>`}).join('')+'</table></div>':'<p class="mut">Belum ada siswa.</p>';
+    else { const P=['L1','L2','L3','L4','R1','R2','R3','R4'], sum=(a,ks)=>{let c=0,t=0;ks.forEach(k=>{c+=a.parts[k][0];t+=a.parts[k][1]});return pct(c,t)};
+      body=`<label>Pilih bab: <select id="bs" style="width:auto">${BAB_NOS.map(b=>`<option ${b===bab?'selected':''}>${b}</option>`).join('')}</select></label><div style="overflow:auto"><table><tr><th>Siswa</th>${P.map(p=>`<th>${p}</th>`).join('')}<th>听力 %</th><th>阅读 %</th><th>Total</th><th>Waktu</th><th>Pindah tab</th><th></th></tr>`+M.map(s=>{const a=get(s.student_id,bab);
+      return a?`<tr><td>${esc(s.username)}</td>${P.map(p=>`<td>${a.parts[p][0]}/${a.parts[p][1]}<br><span class="mut">${pct(...a.parts[p])}%</span></td>`).join('')}<td><span class="pill ${cls(sum(a,P.slice(0,4)))}">${sum(a,P.slice(0,4))}%</span></td><td><span class="pill ${cls(sum(a,P.slice(4)))}">${sum(a,P.slice(4))}%</span></td><td><b>${a.score}/${a.total}</b> <span class="pill ${cls(pct(a.score,a.total))}">${pct(a.score,a.total)}%</span></td><td>${mmss(a.seconds)}</td><td>${a.auto_submitted?'🚨 auto':a.violations||0}</td><td><span class="link" data-r="${a.id}">aktifkan ulang</span></td></tr>`
+        :`<tr><td>${esc(s.username)}</td><td colspan="14" class="mut">belum mengerjakan</td></tr>`}).join('')+`</table></div><p class="mut" style="font-size:12px">L1–L4 = Listening bagian 1–4 · R1–R4 = Reading bagian 1–4</p>`; }
+    app.innerHTML=`<div class="card"><button class="o" id="bk">← Kelas saya</button> <h2 style="display:inline;margin-left:12px">${esc(c.name)}</h2> · kode <b style="color:var(--red);letter-spacing:2px">${esc(c.code)}</b> · ${M.length} siswa</div>
+     <div class="card"><h3>Notifikasi</h3>${E.length?E.slice(0,8).map(e=>`<div style="font-size:14px;margin:3px 0">${evText(e)} <span class="mut">${new Date(e.created_at).toLocaleTimeString()}</span></div>`).join(''):'<span class="mut">Belum ada pelanggaran.</span>'}</div>
+     <div class="card"><div class="tabs"><button class="${view==='sum'?'':'o'}" data-v="sum">Ringkasan semua bab</button><button class="${view==='det'?'':'o'}" data-v="det">Detail per bab & bagian</button></div>${body}</div>`;
+    $('#bk').onclick=teacherHome; document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{view=b.dataset.v;draw()});
+    const bs=$('#bs'); if(bs) bs.onchange=()=>{bab=+bs.value;draw()};
+    document.querySelectorAll('[data-r]').forEach(l=>l.onclick=async()=>{ if(!confirm('Hapus nilai bab ini agar siswa bisa mengerjakan ulang?')) return; const {error}=await db.from('zw_attempts').delete().eq('id',l.dataset.r); error?err(error):load(); });
+  }
+  await load(); let tm; const soon=()=>{clearTimeout(tm);tm=setTimeout(load,500)};   // jeda 0,5 dtk agar tidak membanjiri database
+  const f='class_id=eq.'+c.id;
+  chan=db.channel('dash'+c.id).on('postgres_changes',{event:'*',schema:'public',table:'zw_attempts',filter:f},soon).on('postgres_changes',{event:'*',schema:'public',table:'zw_members',filter:f},soon)
+   .on('postgres_changes',{event:'INSERT',schema:'public',table:'zw_events',filter:f},p=>{toast((p.new.kind==='auto'?'🚨 ':'⚠️ ')+nm(p.new.student_id).replace(/&amp;/g,'&')+' pindah tab ('+p.new.n+'/3), Bab '+p.new.bab);soon()}).subscribe();
+}
+db.auth.onAuthStateChange((ev)=>{ if(ev==='SIGNED_OUT') boot(); });
+boot();
 </script></body></html>
