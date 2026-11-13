@@ -143,3 +143,39 @@ BABS[10] = MK(10,{ r2ex:'D',
   r4:[{...T('我没有手机，今天想去商店买一个。★说话人想买什么？','Wǒ méiyǒu shǒujī, jīntiān xiǎng qù shāngdiàn mǎi yí gè.'),opts:[T('杯子','bēizi'),T('手机','shǒujī'),T('水果','shuǐguǒ')]},
       {...T('这件衣服很好看，你也能穿，买一件吧。★那件衣服：','Zhè jiàn yīfu hěn hǎokàn, nǐ yě néng chuān, mǎi yí jiàn ba.'),opts:[T('好看','hǎokàn'),T('便宜','piányi'),T('很贵','hěn guì')]}]
 });
+
+BABS[11] = MK(11,{ r2ex:'D',
+  l2:[[T('不吃午饭','bù chī wǔfàn'),T('在外边玩','zài wàibian wán'),T('水果便宜','shuǐguǒ piányi')],[T('能到','néng dào'),T('想去呢','xiǎng qù ne'),T('没到呢','méi dào ne')]],
+  l4:[[T('超市','chāoshì'),T('外边','wàibian'),T('房间里','fángjiān lǐ')],[T('学校后边','xuéxiào hòubian'),T('超市前边','chāoshì qiánbian'),T('超市后边','chāoshì hòubian')]],
+  r1:[T('妈妈正在做饭呢。','Māma zhèngzài zuò fàn ne.'),T('你今天不想去学校吗？','Nǐ jīntiān bù xiǎng qù xuéxiào ma?'),T('我和朋友们在外边玩呢。','Wǒ hé péngyoumen zài wàibian wán ne.')],
+  r2:[T('不，我坐出租车。','Bù, wǒ zuò chūzūchē.'),T('非常忙。','Fēicháng máng.'),T('没有，我在开车呢。','Méiyǒu, wǒ zài kāichē ne.'),T('好的，谢谢！','Hǎo de, xièxie!')],
+  r2q:[T('你开车去吗？','Nǐ kāichē qù ma?'),T('你们学习忙不忙？','Nǐmen xuéxí máng bu máng?'),T('你在吃午饭吗？','Nǐ zài chī wǔfàn ma?')],
+  r3:[T('找','zhǎo'),T('睡觉','shuìjiào'),T('名字','míngzi')],
+  r3q:[T('弟弟没起床，还在（　　）呢。','Dìdi méi qǐchuáng, hái zài … ne.'),T('男：喂，你到没到饭店呢？　女：没到呢，我正在（　　）饭店在哪里呢。','Wèi, nǐ dào méi dào fàndiàn ne? Méi dào ne, wǒ zhèngzài … fàndiàn zài nǎlǐ ne.')],
+  r4:[{...T('我姐姐今年20岁，正在读大学呢，她学医。★说话人的姐姐是：','Wǒ jiějie jīnnián èrshí suì, zhèngzài dú dàxué ne, tā xué yī.'),opts:[T('老师','lǎoshī'),T('医生','yīshēng'),T('大学生','dàxuéshēng')]},
+      {...T('我明天有事，要去学校找老师，不知道老师在不在。★说话人明天要去学校见：','Wǒ míngtiān yǒu shì, yào qù xuéxiào zhǎo lǎoshī, bù zhīdào lǎoshī zài bu zài.'),opts:[T('朋友','péngyou'),T('学生','xuésheng'),T('老师','lǎoshī')]}]
+});
+
+BABS[12] = MK(12,{ r2ex:'D',
+  l2:[[T('在吃药','zài chī yào'),T('有点儿','yǒudiǎnr'),T('不太好','bú tài hǎo')],[T('下雪了','xià xuě le'),T('太热了','tài rè le'),T('不喝水','bù hē shuǐ')]],
+  l4:[[T('看医生','kàn yīshēng'),T('看朋友','kàn péngyou'),T('看病人','kàn bìngrén')],[T('工作','gōngzuò'),T('休息','xiūxi'),T('读书','dúshū')]],
+  r1:[T('我女儿生病了。','Wǒ nǚ’ér shēngbìng le.'),T('今天天不太好，下雪了。','Jīntiān tiān bú tài hǎo, xià xuě le.'),T('12:00了，你们怎么还在看电视？','Shí’èr diǎn le, nǐmen zěnme hái zài kàn diànshì?')],
+  r2:[T('热水。','Rè shuǐ.'),T('我病了。','Wǒ bìng le.'),T('对。','Duì.'),T('好的，谢谢！','Hǎo de, xièxie!')],
+  r2q:[T('你怎么了？','Nǐ zěnme le?'),T('你想喝点儿什么？','Nǐ xiǎng hē diǎnr shénme?'),T('你开车了？','Nǐ kāichē le?')],
+  r3:[T('冷','lěng'),T('生病','shēngbìng'),T('名字','míngzi')],
+  r3q:[T('他（　　）了，没来上班。','Tā … le, méi lái shàngbān.'),T('男：外边雨大吗？　女：很大，我觉得有点儿（　　）。','Wàibian yǔ dà ma? Hěn dà, wǒ juéde yǒudiǎnr …')],
+  r4:[{...T('昨天的天气很好，我和朋友们去外边玩了。★说话人觉得昨天：','Zuótiān de tiānqì hěn hǎo, wǒ hé péngyoumen qù wàibian wán le.'),opts:[T('天气好','tiānqì hǎo'),T('雨不大','yǔ bú dà'),T('有点儿冷','yǒudiǎnr lěng')]},
+      {...T('老张去看病，医生说他要吃三天药。★医生说老张：','Lǎo Zhāng qù kànbìng, yīshēng shuō tā yào chī sān tiān yào.'),opts:[T('要吃药','yào chī yào'),T('要多睡觉','yào duō shuìjiào'),T('要多喝水','yào duō hē shuǐ')]}]
+});
+
+BABS[13] = MK(13,{ r2ex:'D',
+  l2:[[T('给你','gěi nǐ'),T('吃早饭','chī zǎofàn'),T('要一杯茶','yào yì bēi chá')],[T('学习','xuéxí'),T('不对','bú duì'),T('没问题','méi wèntí')]],
+  l4:[[T('问问题','wèn wèntí'),T('找人玩','zhǎo rén wán'),T('看医生','kàn yīshēng')],[T('饭店','fàndiàn'),T('学校','xuéxiào'),T('朋友家','péngyou jiā')]],
+  r1:[T('她太小了，这个苹果给她一半吧。','Tā tài xiǎo le, zhège píngguǒ gěi tā yíbàn ba.'),T('请给我一杯牛奶，谢谢。','Qǐng gěi wǒ yì bēi niúnǎi, xièxie.'),T('我打电话问一下吧。','Wǒ dǎ diànhuà wèn yíxià ba.')],
+  r2:[T('不客气。','Bú kèqi.'),T('一个面包。','Yí gè miànbāo.'),T('不知道。','Bù zhīdào.'),T('好的，谢谢！','Hǎo de, xièxie!')],
+  r2q:[T('那里卖不卖手机？','Nàlǐ mài bu mài shǒujī?'),T('我会写了，谢谢老师。','Wǒ huì xiě le, xièxie lǎoshī.'),T('你要什么？','Nǐ yào shénme?')],
+  r3:[T('给','gěi'),T('一下','yíxià'),T('名字','míngzi')],
+  r3q:[T('你看（　　），你要什么？','Nǐ kàn …, nǐ yào shénme?'),T('男：请坐，您要什么？　女：请（　　）我一杯茶。','Qǐng zuò, nín yào shénme? Qǐng … wǒ yì bēi chá.')],
+  r4:[{...T('明天星期天，我们可以去饭店吃饺子吗？★明天是：','Míngtiān Xīngqītiān, wǒmen kěyǐ qù fàndiàn chī jiǎozi ma?'),opts:[T('星期五','Xīngqīwǔ'),T('星期六','Xīngqīliù'),T('星期日','Xīngqīrì')]},
+      {...T('爸爸今天在家里工作，我们不要去他的房间。★爸爸今天：','Bàba jīntiān zài jiā lǐ gōngzuò, wǒmen búyào qù tā de fángjiān.'),opts:[T('在家里工作','zài jiā lǐ gōngzuò'),T('做了面条儿','zuòle miàntiáor'),T('不能去公司','bù néng qù gōngsī')]}]
+});
