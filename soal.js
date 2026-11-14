@@ -28,7 +28,7 @@ const SECS = [
 ];
 // ===== Data per bab =====
 // shared: {L3:{items,ex}, ...}  ex = huruf contoh.  qs: {n, zh?, py?, opts?}  (kunci jawaban ada di server, bukan di sini)
-const PICS = (d,p,k) => 'ABCD'.slice(0,k).split('').map(c => ({img:`img/${d}/${p}${c}.jpg`}));
+const PICS = (d,p,k) => 'ABCDEF'.slice(0,k).split('').map(c => ({img:`img/${d}/${p}${c}.jpg`}));
 const T = (zh,py) => ({zh,py});
 const BABS = {
   4: { audio:'audio/bab_4.mp3',
@@ -179,3 +179,85 @@ BABS[13] = MK(13,{ r2ex:'D',
   r4:[{...T('明天星期天，我们可以去饭店吃饺子吗？★明天是：','Míngtiān Xīngqītiān, wǒmen kěyǐ qù fàndiàn chī jiǎozi ma?'),opts:[T('星期五','Xīngqīwǔ'),T('星期六','Xīngqīliù'),T('星期日','Xīngqīrì')]},
       {...T('爸爸今天在家里工作，我们不要去他的房间。★爸爸今天：','Bàba jīntiān zài jiā lǐ gōngzuò, wǒmen búyào qù tā de fángjiān.'),opts:[T('在家里工作','zài jiā lǐ gōngzuò'),T('做了面条儿','zuòle miàntiáor'),T('不能去公司','bù néng qù gōngsī')]}]
 });
+
+BABS[14] = MK(14,{ r2ex:'D',
+  l2:[[T('都写','dōu xiě'),T('听见了','tīngjiàn le'),T('都会写了','dōu huì xiě le')],[T('学习','xuéxí'),T('超市','chāoshì'),T('买面包','mǎi miànbāo')]],
+  l4:[[T('下课后','xiàkè hòu'),T('上课前','shàngkè qián'),T('回家后','huí jiā hòu')],[T('小狗','xiǎo gǒu'),T('小猫','xiǎo māo'),T('小狗和小猫','xiǎo gǒu hé xiǎo māo')]],
+  r1:[T('王先生今天生病了，没来上班。','Wáng xiānsheng jīntiān shēngbìng le, méi lái shàngbān.'),T('火车上，有的人在读书，有的人在睡觉。','Huǒchē shang, yǒude rén zài dúshū, yǒude rén zài shuìjiào.'),T('喂，他们都来我家了，你也来吧。','Wèi, tāmen dōu lái wǒ jiā le, nǐ yě lái ba.')],
+  r2:[T('是的，我睡了一觉。','Shì de, wǒ shuìle yí jiào.'),T('我们都去了。','Wǒmen dōu qù le.'),T('写字、看书、吃饭。','Xiě zì, kàn shū, chī fàn.'),T('好的，谢谢！','Hǎo de, xièxie!')],
+  r2q:[T('谁去学校了？','Shéi qù xuéxiào le?'),T('你下午没去医院吗？','Nǐ xiàwǔ méi qù yīyuàn ma?'),T('你今天上午都忙了些什么？','Nǐ jīntiān shàngwǔ dōu mángle xiē shénme?')],
+  r3:[T('都','dōu'),T('茶','chá'),T('名字','míngzi')],
+  r3q:[T('我喝了一杯（　　）。','Wǒ hēle yì bēi …'),T('男：上课了，请大家不要说话。　女：好的，老师，我们（　　）不说话了。','Shàngkè le, qǐng dàjiā búyào shuōhuà. Hǎo de, lǎoshī, wǒmen … bù shuōhuà le.')],
+  r4:[{...T('服务员，我想问一下，我们的房间号是多少？★说话人想知道什么？','Fúwùyuán, wǒ xiǎng wèn yíxià, wǒmen de fángjiānhào shì duōshao?'),opts:[T('时间','shíjiān'),T('电话号','diànhuàhào'),T('房间号','fángjiānhào')]},
+      {...T('儿子和女儿都上小学了，他们会写很多字了。★说话人的两个孩子是：','Érzi hé nǚ’ér dōu shàng xiǎoxué le, tāmen huì xiě hěn duō zì le.'),opts:[T('小学生','xiǎoxuéshēng'),T('中学生','zhōngxuéshēng'),T('大学生','dàxuéshēng')]}]
+});
+
+BABS[15] = MK(15,{ r2ex:'D',
+  l2:[[T('太早了','tài zǎo le'),T('没睡觉','méi shuìjiào'),T('不想去','bù xiǎng qù')],[T('很多','hěn duō'),T('也不贵','yě bú guì'),T('也很好看','yě hěn hǎokàn')]],
+  l4:[[T('西安','Xī’ān'),T('北京','Běijīng'),T('上海','Shànghǎi')],[T('坐飞机','zuò fēijī'),T('坐火车','zuò huǒchē'),T('坐出租车','zuò chūzūchē')]],
+  r1:[T('我家有五口人，我们现在住在北京。','Wǒ jiā yǒu wǔ kǒu rén, wǒmen xiànzài zhù zài Běijīng.'),T('这里有好吃的，还有好玩儿的。','Zhèlǐ yǒu hǎochī de, hái yǒu hǎowánr de.'),T('现在我会说一点儿汉语，也会写一些汉字了。','Xiànzài wǒ huì shuō yìdiǎnr Hànyǔ, yě huì xiě yìxiē Hànzì le.')],
+  r2:[T('我女儿。','Wǒ nǚ’ér.'),T('十个。','Shí gè.'),T('苹果。','Píngguǒ.'),T('好的，谢谢！','Hǎo de, xièxie!')],
+  r2q:[T('你会写几个汉字？','Nǐ huì xiě jǐ gè Hànzì?'),T('谁上中学了？','Shéi shàng zhōngxué le?'),T('你爱吃什么？','Nǐ ài chī shénme?')],
+  r3:[T('电视','diànshì'),T('北京','Běijīng'),T('名字','míngzi')],
+  r3q:[T('今年我们都想去（　　）。','Jīnnián wǒmen dōu xiǎng qù …'),T('男：我爱看电影，也爱唱歌。你呢？　女：我喜欢看（　　）。','Wǒ ài kàn diànyǐng, yě ài chàng gē. Nǐ ne? Wǒ xǐhuan kàn …')],
+  r4:[{...T('明天星期天，儿子想去看一个电影。★儿子明天想：','Míngtiān Xīngqītiān, érzi xiǎng qù kàn yí gè diànyǐng.'),opts:[T('买电脑','mǎi diànnǎo'),T('打电话','dǎ diànhuà'),T('看电影','kàn diànyǐng')]},
+      {...T('下小雨了，小狗非常高兴，它喜欢小雨。★小狗喜欢：','Xià xiǎoyǔ le, xiǎo gǒu fēicháng gāoxìng, tā xǐhuan xiǎoyǔ.'),opts:[T('下小雨','xià xiǎoyǔ'),T('下大雨','xià dàyǔ'),T('下小雪','xià xiǎoxuě')]}]
+});
+
+// ===== MOCK TEST HSK 1 (bab ke-16, 40 soal) =====
+const SECS_MOCK = [
+ {id:'L1',from:1,to:5,kind:'pic',zh:'听力 第一部分 · 第1—5题',en:'Listening Part 1 · Questions 1–5: Listen and choose the correct picture.',
+  how:'Dengarkan tiap frasa/kalimat, lalu pilih gambar yang sesuai (A, B, atau C).',ex:SECS[0].ex},
+ {id:'L2',from:6,to:10,kind:'txt',zh:'听力 第二部分 · 第6—10题',en:'Listening Part 2 · Questions 6–10: Listen and choose the correct answer.',
+  how:'Dengarkan pertanyaan atau kalimat, lalu pilih jawaban yang tepat.',
+  ex:{zh:'今天天气怎么样？',py:'Jīntiān tiānqì zěnmeyàng?',en:'How is the weather today?',a:'C',opts:[{zh:'在学习',py:'zài xuéxí'},{zh:'很好听',py:'hěn hǎotīng'},{zh:'非常热',py:'fēicháng rè'}]}},
+ {id:'L3',from:11,to:15,kind:'shared',zh:'听力 第三部分 · 第11—15题',en:'Listening Part 3 · Questions 11–15: Listen to each dialogue and choose the correct picture.',
+  how:'Dengarkan dialog, lalu pilih gambar yang paling cocok dari gambar A–F di atas. Gambar bertanda “Contoh” tidak dipakai sebagai jawaban.',
+  ex:{zh:'女：你好！　男：你好！很高兴认识你。',py:'Nǐ hǎo! Nǐ hǎo! Hěn gāoxìng rènshi nǐ.',en:'How do you do? Nice to meet you.'}},
+ {id:'L4',from:16,to:20,kind:'txt',zh:'听力 第四部分 · 第16—20题',en:'Listening Part 4 · Questions 16–20: Listen and choose the correct answer.',
+  how:'Dengarkan kalimat dan pertanyaannya, lalu pilih jawaban yang benar.',ex:SECS[3].ex},
+ {id:'R1',from:21,to:25,kind:'shared',zh:'阅读 第一部分 · 第21—25题',en:'Reading Part 1 · Questions 21–25: Choose the correct picture for each sentence.',
+  how:'Baca kalimat, lalu pilih gambar yang paling cocok dari gambar A–F. Gambar bertanda “Contoh” tidak dipakai sebagai jawaban.',
+  ex:{zh:'我很喜欢这本书。',py:'Wǒ hěn xǐhuan zhè běn shū.',en:'I like this book very much.'}},
+ {id:'R2',from:26,to:30,kind:'shared',zh:'阅读 第二部分 · 第26—30题',en:'Reading Part 2 · Questions 26–30: Match the sentences.',
+  how:'Baca pertanyaan, lalu cocokkan dengan jawaban yang tepat dari daftar A–F di atas. Setiap jawaban dipakai sekali.',
+  ex:{zh:'你喝水吗？',py:'Nǐ hē shuǐ ma?',en:'Would you like some water?'}},
+ {id:'R3',from:31,to:35,kind:'shared',zh:'阅读 第三部分 · 第31—35题',en:'Reading Part 3 · Questions 31–35: Choose the correct word to fill in each blank.',
+  how:'Pilih kata yang tepat dari daftar A–F di atas untuk mengisi bagian kosong ( ). Kata bertanda “Contoh” tidak dipakai.',
+  ex:{zh:'你（　）什么名字？',py:'Nǐ … shénme míngzi?',en:'What is your name?'}},
+ {id:'R4',from:36,to:40,kind:'txt',zh:'阅读 第四部分 · 第36—40题',en:'Reading Part 4 · Questions 36–40: Choose the correct answer.',
+  how:'Baca teks pendek, lalu jawab pertanyaan ★ dengan memilih pilihan yang benar.',ex:SECS[7].ex}
+];
+BABS[16] = { audio:'audio/mocktest.mp3', secs:SECS_MOCK,
+  shared:{
+    L3:{ex:'C',items:PICS('bm','p11',6)},
+    R1:{ex:'E',items:PICS('bm','p21',6)},
+    R2:{ex:'F',items:[T('商店。','Shāngdiàn.'),T('我学生。','Wǒ xuésheng.'),T('在桌子上。','Zài zhuōzi shang.'),T('还没有。','Hái méiyǒu.'),T('下雪了。','Xià xuě le.'),T('好的，谢谢！','Hǎo de, xièxie!')]},
+    R3:{ex:'D',items:[T('认识','rènshi'),T('住','zhù'),T('晚饭','wǎnfàn'),T('叫','jiào'),T('汉字','Hànzì'),T('块','kuài')]} },
+  qs:[
+    ...[1,2,3,4,5].map(i=>({n:i,opts:PICS('bm','q'+i,3)})),
+    {n:6,opts:[T('哪里','nǎlǐ'),T('打电话','dǎ diànhuà'),T('做饭好吃','zuò fàn hǎochī')]},
+    {n:7,opts:[T('白天','báitiān'),T('生病了','shēngbìng le'),T('水果店','shuǐguǒdiàn')]},
+    {n:8,opts:[T('八元','bā yuán'),T('不是','bú shì'),T('便宜','piányi')]},
+    {n:9,opts:[T('去年','qùnián'),T('很漂亮','hěn piàoliang'),T('我弟弟','wǒ dìdi')]},
+    {n:10,opts:[T('没有','méiyǒu'),T('再见','zàijiàn'),T('不要','búyào')]},
+    {n:11},{n:12},{n:13},{n:14},{n:15},
+    {n:16,opts:[T('60岁','suì'),T('60多岁','duō suì'),T('70岁','suì')]},
+    {n:17,opts:[T('电脑','diànnǎo'),T('杯子','bēizi'),T('手机','shǒujī')]},
+    {n:18,opts:[T('女儿','nǚ’ér'),T('妹妹','mèimei'),T('高女士','Gāo nǚshì')]},
+    {n:19,opts:[T('包子','bāozi'),T('面包','miànbāo'),T('面条儿','miàntiáor')]},
+    {n:20,opts:[T('早上','zǎoshang'),T('中午','zhōngwǔ'),T('星期天','Xīngqītiān')]},
+    {n:21,...T('王先生是医生。','Wáng xiānsheng shì yīshēng.')},{n:22,...T('姐姐上午去超市买了菜。','Jiějie shàngwǔ qù chāoshì mǎile cài.')},
+    {n:23,...T('今天的早饭是牛奶和鸡蛋。','Jīntiān de zǎofàn shì niúnǎi hé jīdàn.')},{n:24,...T('我家有四口人，爸爸、妈妈、弟弟和我。','Wǒ jiā yǒu sì kǒu rén, bàba, māma, dìdi hé wǒ.')},
+    {n:25,...T('她和好朋友都爱唱歌。','Tā hé hǎo péngyou dōu ài chàng gē.')},
+    {n:26,...T('这是我的书，你的呢？','Zhè shì wǒ de shū, nǐ de ne?')},{n:27,...T('你去哪儿买苹果？','Nǐ qù nǎr mǎi píngguǒ?')},
+    {n:28,...T('昨天天气怎么样？','Zuótiān tiānqì zěnmeyàng?')},{n:29,...T('你和谁打电话呢？','Nǐ hé shéi dǎ diànhuà ne?')},{n:30,...T('你下班了吗？','Nǐ xiàbān le ma?')},
+    {n:31,...T('大家都没吃（　　）呢。','Dàjiā dōu méi chī … ne.')},{n:32,...T('在今天的中文课上，我学了很多（　　）。','Zài jīntiān de Zhōngwén kè shang, wǒ xuéle hěn duō …')},
+    {n:33,...T('对不起，我不（　　）这个人。','Duìbuqǐ, wǒ bú … zhège rén.')},{n:34,...T('我和家人（　　）在北京。','Wǒ hé jiārén … zài Běijīng.')},
+    {n:35,...T('男：这些东西可以卖多少钱？　女：80（　　）。','Zhèxiē dōngxi kěyǐ mài duōshao qián? 80 …')},
+    {n:36,...T('下雨了，我们坐出租车回家吧。★说话人想怎么回家？','Xià yǔ le, wǒmen zuò chūzūchē huí jiā ba.'),opts:[T('开车','kāichē'),T('坐飞机','zuò fēijī'),T('坐出租车','zuò chūzūchē')]},
+    {n:37,...T('我儿子今年16岁了，正在上中学。★说话人的儿子是：','Wǒ érzi jīnnián shíliù suì le, zhèngzài shàng zhōngxué.'),opts:[T('小学生','xiǎoxuéshēng'),T('中学生','zhōngxuéshēng'),T('大学生','dàxuéshēng')]},
+    {n:38,...T('小猫和小狗都在房间外睡觉呢。★小狗在：','Xiǎo māo hé xiǎo gǒu dōu zài fángjiān wài shuìjiào ne.'),opts:[T('桌子下','zhuōzi xià'),T('房间里','fángjiān lǐ'),T('房间外','fángjiān wài')]},
+    {n:39,...T('我同学在这个学校工作很多年了，你有问题可以问他。★说话人的同学在哪儿上班？','Wǒ tóngxué zài zhège xuéxiào gōngzuò hěn duō nián le, nǐ yǒu wèntí kěyǐ wèn tā.'),opts:[T('饭店','fàndiàn'),T('医院','yīyuàn'),T('学校','xuéxiào')]},
+    {n:40,...T('这个小朋友写字真好看。★那个小朋友：','Zhège xiǎopéngyou xiě zì zhēn hǎokàn.'),opts:[T('名字好听','míngzi hǎotīng'),T('写字好看','xiě zì hǎokàn'),T('正在读书','zhèngzài dúshū')]}
+  ] };
