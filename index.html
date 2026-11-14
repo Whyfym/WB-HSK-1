@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#8b1a1a">
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#8b1a1a"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <title>Zhongwenfy</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -84,8 +84,12 @@ button.sm{min-height:36px;padding:4px 12px;font-size:13px}
 .rv{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:6px}
 .psg{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:8px 0}.ps{border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff;font-size:14px}
 .bar2{height:8px;background:#eee;border-radius:6px;overflow:hidden;margin:6px 0}.bar2 i{display:block;height:100%;border-radius:6px}.bar2 i.g{background:#2f9d5f}.bar2 i.y{background:#e0a800}.bar2 i.r{background:#c0392b}
+
+#fsb{position:fixed;left:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:40;width:34px;height:34px;min-height:0;padding:0;border-radius:50%;background:#000a;color:#fff;font-size:16px;line-height:1;opacity:.65;border:1px solid #fff5}
+#fsb:hover,#fsb:focus{opacity:1}
 </style></head><body>
 <header><div class="logo">中</div><b>Zhongwenfy</b><span class="sp"></span><span id="who"></span></header>
+<button id="fsb" title="Layar penuh" aria-label="Layar penuh" hidden>⛶</button>
 <main id="app"><p class="mut">Memuat…</p></main>
 <script src="soal.js"></script>
 <script>
@@ -97,7 +101,8 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const $ = s => document.querySelector(s), app = $('#app');
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const LS = { get:k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}}, set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}}, del:k=>{try{localStorage.removeItem(k)}catch{}} };
-const BAB_NOS = Array.from({length:12},(_,i)=>i+4);
+const BAB_NOS = Array.from({length:13},(_,i)=>i+4);   // 4..15 = bab, 16 = Mock Test
+const bname = b => b===16 ? 'Mock Test' : 'Bab '+b;
 const pct = (c,t) => t ? Math.round(c/t*100) : 0;
 const cls = p => p>=80?'g':p>=60?'y':'r';
 const mmss = s => s==null?'—':Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
@@ -144,23 +149,34 @@ async function studentHome(){
       <label>Username kamu (nama yang dilihat laoshi)</label><input id="un" maxlength="30"><button id="go">Masuk Kelas</button></div>`;
     return $('#go').onclick = async () => { const {error}=await db.rpc('zw_join_class',{p_code:$('#code').value,p_username:$('#un').value}); error?err(error):studentHome(); };
   }
-  const [{data:at},{data:ms},{data:rd}] = await Promise.all([
+  const [{data:at},{data:ms},{data:rd},{data:mk}] = await Promise.all([
     db.from('zw_attempts').select('bab,score,total').eq('student_id',me.id),
     db.from('zw_messages').select('id,kind,body,created_at').eq('class_id',m.class_id).order('created_at',{ascending:false}).limit(20),
-    db.from('zw_msg_reads').select('message_id').eq('student_id',me.id)]);
+    db.from('zw_msg_reads').select('message_id').eq('student_id',me.id),
+    db.from('zw_mock_access').select('status').eq('student_id',me.id).maybeSingle()]);
   const d = {}; (at||[]).forEach(a => d[a.bab]=a);
   const seen = new Set((rd||[]).map(r=>r.message_id)), msgs = ms||[], unread = msgs.filter(x=>!seen.has(x.id));
   const notif = msgs.length ? `<div class="card"><h3>🔔 Pemberitahuan ${unread.length?`<span class="pill r">${unread.length} baru</span>`:''}</h3>${msgs.slice(0,6).map(x=>
       `<div class="msg ${x.kind}${seen.has(x.id)?'':' new'}"><b>${x.kind==='warning'?'⚠️ Peringatan dari Laoshi':'📩 Pesan dari Laoshi'}</b><div>${esc(x.body)}</div><span class="mut">${new Date(x.created_at).toLocaleString()}</span></div>`).join('')}
       ${unread.length?'<button class="o" id="rd">Tandai sudah dibaca</button>':''}</div>` : '';
+  const mockBtn=()=>!mk?'<button data-mk="req">🔒 Buka</button>':mk.status==='pending'?'<span class="pill y">⏳ Menunggu persetujuan laoshi</span>':'<button data-b="16">Mulai</button>';
   app.innerHTML = `<div class="card"><h2>${esc(m.zw_classes?.name)} <small class="mut">· ${esc(m.username)}</small></h2></div>${notif}
     <div class="card"><h3>模拟测验 · Pilih Bab</h3><div class="babs">${BAB_NOS.map(b=>{const a=d[b];
-    return `<div class="card"><b>Bab ${b}</b><br>${a?`<span class="sc">${a.score}/${a.total}</span> <span class="pill ${cls(pct(a.score,a.total))}">${pct(a.score,a.total)}%</span><br><button class="o sm" data-r="${b}">Lihat laporan</button>`:BABS[b]?`<button data-b="${b}">Mulai</button>`:'<span class="mut">segera hadir</span>'}</div>`}).join('')}</div></div>`;
-  document.querySelectorAll('button[data-b]').forEach(b => b.onclick = () => { if(confirm('Mulai Bab '+b.dataset.b+'?\n• Hanya bisa dikerjakan SEKALI.\n• Jangan pindah tab/aplikasi: peringatan maksimal 3x, lalu otomatis dikumpulkan.')) startTest(+b.dataset.b); });
+    return `<div class="card"><b>${bname(b)}</b>${b===16?'<br><span class="mut" style="font-size:12px">40 soal</span>':''}<br>${a?`<span class="sc">${a.score}/${a.total}</span> <span class="pill ${cls(pct(a.score,a.total))}">${pct(a.score,a.total)}%</span><br><button class="o sm" data-r="${b}">Lihat laporan</button>`:b===16?mockBtn():BABS[b]?`<button data-b="${b}">Mulai</button>`:'<span class="mut">segera hadir</span>'}</div>`}).join('')}</div></div>`;
+  document.querySelectorAll('button[data-b]').forEach(b => b.onclick = () => { if(confirm('Mulai '+bname(+b.dataset.b)+'?\n• Hanya bisa dikerjakan SEKALI.\n• Jangan pindah tab/aplikasi: peringatan maksimal 3x, lalu otomatis dikumpulkan.')) startTest(+b.dataset.b); });
   document.querySelectorAll('button[data-r]').forEach(b => b.onclick = () => report(+b.dataset.r));
+  document.querySelectorAll('button[data-mk]').forEach(b => b.onclick = askCode);
   const rdb=$('#rd'); if(rdb) rdb.onclick = async () => { const {error}=await db.from('zw_msg_reads').insert(unread.map(x=>({message_id:x.id,student_id:me.id}))); error?err(error):studentHome(); };
   chan = db.channel('stu'+me.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'zw_messages',filter:'class_id=eq.'+m.class_id},p=>{
-    toast((p.new.kind==='warning'?'⚠️ Peringatan dari Laoshi: ':'📩 Pesan dari Laoshi: ')+String(p.new.body).slice(0,90)); studentHome(); }).subscribe();
+    toast((p.new.kind==='warning'?'⚠️ Peringatan dari Laoshi: ':'📩 Pesan dari Laoshi: ')+String(p.new.body).slice(0,90)); studentHome(); })
+   .on('postgres_changes',{event:'*',schema:'public',table:'zw_mock_access',filter:'student_id=eq.'+me.id},p=>{ if(p.new&&p.new.status==='approved') toast('✅ Laoshi menyetujui Mock Test. Kamu bisa mulai.'); studentHome(); }).subscribe();
+}
+
+function askCode(){
+  const m=document.createElement('div'); m.className='modal';
+  m.innerHTML=`<div><h3>🔒 Mock Test HSK 1</h3><p>Masukkan sandi dari laoshi. Setelah itu laoshi harus menyetujui permintaanmu sebelum kamu bisa mulai.</p><input id="mkc" type="password" placeholder="Sandi" autocomplete="off"><p style="text-align:right"><button class="o" id="mkx">Batal</button> <button id="mko">Kirim</button></p></div>`;
+  document.body.appendChild(m); $('#mkc').focus(); $('#mkx').onclick=()=>m.remove();
+  $('#mko').onclick=async()=>{ const {data,error}=await db.rpc('zw_mock_request',{p_code:$('#mkc').value.trim()}); if(error) return err(error); m.remove(); toast(data==='approved'?'Sudah disetujui laoshi':'✅ Permintaan dikirim. Tunggu persetujuan laoshi.'); studentHome(); };
 }
 
 // ===== Laporan hasil siswa =====
@@ -173,19 +189,19 @@ async function report(bab){
   const grp=ids=>{let c=0,t=0;ids.forEach(i=>{c+=P[i][0];t+=P[i][1]});return pct(c,t)};
   const lis=grp(['L1','L2','L3','L4']), rea=grp(['R1','R2','R3','R4']);
   const wrong=B.qs.filter(q=>a.answers[q.n]!==key[q.n-1]);
-  const item=(s,q,k)=>s.kind==='shared'?B.shared[s.id].items['ABCD'.indexOf(k)]:q.opts['ABCD'.indexOf(k)];
+  const item=(s,q,k)=>s.kind==='shared'?B.shared[s.id].items['ABCDEF'.indexOf(k)]:q.opts['ABCDEF'.indexOf(k)];
   const chip=(s,q,k,c)=>{const it=item(s,q,k);return it?optHTML(it,k,0).replace('class="opt','class="opt '+c):''};
   const verdict=p>=80?'🎉 Bagus sekali! Pertahankan.':p>=60?'👍 Cukup baik. Pelajari soal yang salah di bawah, lalu ulangi bagian yang lemah.':'💪 Masih perlu belajar. Dengarkan lagi rekaman dan pelajari setiap soal yang salah di bawah.';
   app.innerHTML=`<div class="card test nocopy" id="tst" style="--fs:16px"><button class="o" id="bk">← Daftar bab</button>
-   <h2>Laporan Bab ${bab}</h2>
+   <h2>Laporan ${bname(bab)}</h2>
    <div class="score"><span class="pill ${cls(p)}" style="font-size:22px;padding:4px 16px">${a.score}/${a.total} · ${p}%</span>
     <p class="mut" style="font-size:.8em">⏱ ${mmss(a.seconds)} · pindah tab: ${a.auto_submitted?'3x (dikumpulkan otomatis)':a.violations||0}</p><p>${verdict}</p></div>
    <div class="psg"><div class="ps"><b>🎧 Listening</b><div class="bar2"><i class="${cls(lis)}" style="width:${lis}%"></i></div><b>${lis}%</b></div>
     <div class="ps"><b>📖 Reading</b><div class="bar2"><i class="${cls(rea)}" style="width:${rea}%"></i></div><b>${rea}%</b></div></div>
-   <h3>Nilai per bagian</h3><div class="psg">${SECS.map(s=>{const [c,t]=P[s.id],pp=pct(c,t);return `<div class="ps"><b>${SEC_LABEL[s.id]}</b> <span class="mut">soal ${s.from}–${s.to}</span><div class="bar2"><i class="${cls(pp)}" style="width:${pp}%"></i></div>${c}/${t} · <b>${pp}%</b></div>`}).join('')}</div>
+   <h3>Nilai per bagian</h3><div class="psg">${(B.secs||SECS).map(s=>{const [c,t]=P[s.id],pp=pct(c,t);return `<div class="ps"><b>${SEC_LABEL[s.id]}</b> <span class="mut">soal ${s.from}–${s.to}</span><div class="bar2"><i class="${cls(pp)}" style="width:${pp}%"></i></div>${c}/${t} · <b>${pp}%</b></div>`}).join('')}</div>
    <h3>Rekaman bab ini</h3><audio controls preload="none" controlsList="nodownload" src="${B.audio}"></audio>
    <h3>Soal yang perlu dipelajari (${wrong.length})</h3>
-   ${wrong.length?wrong.map(q=>{const s=SECS.find(s=>q.n>=s.from&&q.n<=s.to),mine=a.answers[q.n];
+   ${wrong.length?wrong.map(q=>{const s=(B.secs||SECS).find(s=>q.n>=s.from&&q.n<=s.to),mine=a.answers[q.n];
      return `<div class="q"><h4>SOAL ${q.n} · ${SEC_LABEL[s.id]}</h4>${q.zh?stem(q):'<div class="en">🎧 Soal dari rekaman: dengarkan lagi audio di atas, lalu bandingkan dengan jawaban benar.</div>'}
       <div class="rv"><div><small class="mut">Jawabanmu</small>${mine?chip(s,q,mine,'bad'):'<div class="mut">tidak dijawab</div>'}</div><div><small class="mut">Jawaban benar</small>${chip(s,q,key[q.n-1],'ok')}</div></div></div>`}).join(''):'<p>✅ Semua jawabanmu benar!</p>'}</div>`;
   const t=$('#tst'); ['copy','cut','contextmenu','selectstart','dragstart'].forEach(ev=>t.addEventListener(ev,e=>e.preventDefault()));
@@ -208,17 +224,17 @@ function startTest(bab){
   const B=BABS[bab], ans=LS.get('ans_'+bab)||{}, t0=Date.now()-(LS.get('t_'+bab)||0)*1000;
   let vio=LS.get('vio_'+bab)||0, done=false, warn=false, sizes=[14,16,18,20,24], si=LS.get('fs')??(innerWidth<600?1:2);
   let html='';
-  SECS.forEach(s=>{
+  (B.secs||SECS).forEach(s=>{
     const qs=B.qs.filter(q=>q.n>=s.from&&q.n<=s.to); if(!qs.length) return;
     html+=`<div class="sec">${s.zh}<small>${esc(s.en)}</small></div><div class="how">📘 <b>Cara mengerjakan:</b> ${esc(s.how)}</div>`+exampleHTML(s,B);
-    const sh=B.shared[s.id], letters=sh?sh.items.map((_,i)=>'ABCD'[i]).filter(k=>k!==sh.ex):null;
-    if(sh) html+=`<div class="shared">${sh.items.map((it,i)=>shHTML(it,'ABCD'[i],sh.ex)).join('')}</div>`;
+    const sh=B.shared[s.id], letters=sh?sh.items.map((_,i)=>'ABCDEF'[i]).filter(k=>k!==sh.ex):null;
+    if(sh) html+=`<div class="shared">${sh.items.map((it,i)=>shHTML(it,'ABCDEF'[i],sh.ex)).join('')}</div>`;
     qs.forEach(q=>{ html+=`<div class="q" id="q${q.n}"><h4>SOAL ${q.n}</h4>${q.zh?stem(q):''}<div class="opts${sh?' lets':''}">`+
-      (sh?letters.map(k=>`<div class="opt" data-n="${q.n}" data-k="${k}"><i>${k}</i></div>`).join(''):q.opts.map((o,i)=>optHTML(o,'ABCD'[i],q.n)).join(''))+'</div></div>'; });
+      (sh?letters.map(k=>`<div class="opt" data-n="${q.n}" data-k="${k}"><i>${k}</i></div>`).join(''):q.opts.map((o,i)=>optHTML(o,'ABCDEF'[i],q.n)).join(''))+'</div></div>'; });
   });
-  app.innerHTML=`<div class="layout"><div class="card test nocopy" id="tst"><h2 style="font-size:1.2em">模拟测验 · Bab ${bab}</h2>${html}</div><div class="side">
+  app.innerHTML=`<div class="layout"><div class="card test nocopy" id="tst"><h2 style="font-size:1.2em">模拟测验 · ${bname(bab)}</h2>${html}</div><div class="side">
    <div class="card s1"><b class="hd">REKAMAN UJIAN · 听力</b><audio controls controlsList="nodownload" preload="none" src="${B.audio}"></audio>
-   <div class="bar"><b>⏱ <span id="tm">00:00</span></b><span><b id="cnt">0</b>/20 terjawab</span><span class="fz"><button class="o" id="fm" aria-label="Perkecil huruf">A−</button><button class="o" id="fp" aria-label="Perbesar huruf">A+</button></span></div></div>
+   <div class="bar"><b>⏱ <span id="tm">00:00</span></b><span><b id="cnt">0</b>/${B.qs.length} terjawab</span><span class="fz"><button class="o" id="fm" aria-label="Perkecil huruf">A−</button><button class="o" id="fp" aria-label="Perbesar huruf">A+</button></span></div></div>
    <div class="card s2"><b>Nomor soal</b><div class="nav">${B.qs.map(q=>`<a data-g="${q.n}" id="n${q.n}">${q.n}</a>`).join('')}</div><button id="sub" style="width:100%">Kumpulkan Jawaban</button>
    <p class="mut" style="font-size:12px">Pindah tab: <b id="vc">${vio}</b>/3</p></div></div></div>`;
   const setFs=()=>$('#tst').style.setProperty('--fs',sizes[si]+'px'); setFs();
@@ -244,7 +260,7 @@ function startTest(bab){
     ['ans_','t_','vio_'].forEach(p=>LS.del(p+bab)); leave();
     auto ? modal('Jawabanmu dikumpulkan <b>otomatis</b> karena berpindah tab 3 kali.<br>Nilai: <b>'+data.score+'/'+data.total+'</b>',()=>report(bab)) : report(bab);
   }
-  $('#sub').onclick=()=>{ const left=20-Object.keys(ans).length;
+  $('#sub').onclick=()=>{ const left=B.qs.length-Object.keys(ans).length;
     if(confirm(left?`Masih ${left} soal belum dijawab. Kumpulkan? Bab ini TIDAK bisa diulang.`:'Kumpulkan jawaban? Bab ini tidak bisa diulang.')){ $('#sub').disabled=true; finish(false); } };
 }
 
@@ -260,37 +276,44 @@ async function teacherHome(){
     const {error}=await db.from('zw_classes').insert({name,code,teacher_id:me.id}); error?err(String(error.message).includes('duplicate')?'Kode itu sudah dipakai, pilih kode lain.':error):teacherHome(); };
 }
 async function dash(c){
-  leave(); let M=[],A=[],E=[],MS=[],view='sum',bab=4;
-  const load=async()=>{ const [m,a,e,g]=await Promise.all([db.from('zw_members').select('student_id,username').eq('class_id',c.id).order('username'),
+  leave(); let M=[],A=[],E=[],MS=[],MA=[],view='sum',bab=4;
+  const load=async()=>{ const [m,a,e,g,k]=await Promise.all([db.from('zw_members').select('student_id,username').eq('class_id',c.id).order('username'),
       db.from('zw_attempts').select('id,student_id,bab,score,total,parts,seconds,violations,auto_submitted').eq('class_id',c.id),
       db.from('zw_events').select('student_id,bab,kind,n,created_at').eq('class_id',c.id).order('created_at',{ascending:false}).limit(30),
-      db.from('zw_messages').select('id,student_id,kind,body,created_at').eq('class_id',c.id).order('created_at',{ascending:false}).limit(10)]);
-    M=m.data||[];A=a.data||[];E=e.data||[];MS=g.data||[]; draw(); };
+      db.from('zw_messages').select('id,student_id,kind,body,created_at').eq('class_id',c.id).order('created_at',{ascending:false}).limit(10),
+      db.from('zw_mock_access').select('id,student_id,status,requested_at').eq('class_id',c.id)]);
+    M=m.data||[];A=a.data||[];E=e.data||[];MS=g.data||[];MA=k.data||[]; draw(); };
   const nm=id=>esc(M.find(m=>m.student_id===id)?.username||'?');
-  const evText=e=>e.kind==='auto'?`🚨 <b>${nm(e.student_id)}</b> pindah tab 3x → dikumpulkan otomatis (Bab ${e.bab})`:`⚠️ <b>${nm(e.student_id)}</b> pindah tab (${e.n}/3) di Bab ${e.bab}`;
+  const evText=e=>e.kind==='auto'?`🚨 <b>${nm(e.student_id)}</b> pindah tab 3x → dikumpulkan otomatis (${bname(e.bab)})`:`⚠️ <b>${nm(e.student_id)}</b> pindah tab (${e.n}/3) di ${bname(e.bab)}`;
   const get=(s,b)=>A.find(a=>a.student_id===s&&a.bab===b);
-  const sumBody=()=>M.length?`<div style="overflow:auto"><table><tr><th>Siswa</th>${BAB_NOS.map(b=>`<th>Bab ${b}</th>`).join('')}<th>Rata²</th></tr>`+M.map(s=>{const r=BAB_NOS.map(b=>get(s.student_id,b)),dn=r.filter(Boolean);
+  const sumBody=()=>M.length?`<div style="overflow:auto"><table><tr><th>Siswa</th>${BAB_NOS.map(b=>`<th>${b===16?'Mock':'Bab '+b}</th>`).join('')}<th>Rata²</th></tr>`+M.map(s=>{const r=BAB_NOS.map(b=>get(s.student_id,b)),dn=r.filter(Boolean);
       return `<tr><td>${esc(s.username)}</td>${r.map(a=>a?`<td><span class="pill ${cls(pct(a.score,a.total))}">${pct(a.score,a.total)}%</span>${a.auto_submitted?' 🚨':a.violations?' ⚠️'+a.violations:''}</td>`:'<td class="mut">—</td>').join('')}<td class="sc">${dn.length?Math.round(dn.reduce((x,a)=>x+pct(a.score,a.total),0)/dn.length)+'%':'—'}</td></tr>`}).join('')+'</table></div>':'<p class="mut">Belum ada siswa.</p>';
   const detBody=()=>{ const P=['L1','L2','L3','L4','R1','R2','R3','R4'], sum=(a,ks)=>{let c=0,t=0;ks.forEach(k=>{c+=a.parts[k][0];t+=a.parts[k][1]});return pct(c,t)};
-    return `<label>Pilih bab: <select id="bs" style="width:auto">${BAB_NOS.map(b=>`<option ${b===bab?'selected':''}>${b}</option>`).join('')}</select></label><div style="overflow:auto"><table><tr><th>Siswa</th>${P.map(p=>`<th>${p}</th>`).join('')}<th>听力 %</th><th>阅读 %</th><th>Total</th><th>Waktu</th><th>Pindah tab</th><th></th></tr>`+M.map(s=>{const a=get(s.student_id,bab);
+    return `<label>Pilih bab / Mock: <select id="bs" style="width:auto">${BAB_NOS.map(b=>`<option value="${b}" ${b===bab?'selected':''}>${bname(b)}</option>`).join('')}</select></label><div style="overflow:auto"><table><tr><th>Siswa</th>${P.map(p=>`<th>${p}</th>`).join('')}<th>听力 %</th><th>阅读 %</th><th>Total</th><th>Waktu</th><th>Pindah tab</th><th></th></tr>`+M.map(s=>{const a=get(s.student_id,bab);
       return a?`<tr><td>${esc(s.username)}</td>${P.map(p=>`<td>${a.parts[p][0]}/${a.parts[p][1]}<br><span class="mut">${pct(...a.parts[p])}%</span></td>`).join('')}<td><span class="pill ${cls(sum(a,P.slice(0,4)))}">${sum(a,P.slice(0,4))}%</span></td><td><span class="pill ${cls(sum(a,P.slice(4)))}">${sum(a,P.slice(4))}%</span></td><td><b>${a.score}/${a.total}</b> <span class="pill ${cls(pct(a.score,a.total))}">${pct(a.score,a.total)}%</span></td><td>${mmss(a.seconds)}</td><td>${a.auto_submitted?'🚨 auto':a.violations||0}</td><td><span class="link" data-r="${a.id}">aktifkan ulang</span></td></tr>`
         :`<tr><td>${esc(s.username)}</td><td colspan="14" class="mut">belum mengerjakan</td></tr>`}).join('')+`</table></div><p class="mut" style="font-size:12px">L1–L4 = Listening bagian 1–4 · R1–R4 = Reading bagian 1–4</p>`; };
   const mgrBody=()=>`<h3>Kirim pesan ke siswa</h3><label>Kepada</label><select id="mto"><option value="">Semua siswa di kelas</option>${M.map(s=>`<option value="${s.student_id}">${esc(s.username)}</option>`).join('')}</select>
     <label>Jenis</label><select id="mk"><option value="info">📩 Pesan</option><option value="warning">⚠️ Peringatan</option></select>
     <label>Isi pesan (maks. 500 huruf)</label><textarea id="mb" rows="3" maxlength="500"></textarea><button id="msend">Kirim</button>
-    <h3>Daftar siswa</h3><div style="overflow:auto"><table><tr><th>Siswa</th><th>Bab selesai</th><th>Aksi</th></tr>${M.map(s=>`<tr><td>${esc(s.username)}</td><td>${A.filter(a=>a.student_id===s.student_id).length}/12</td><td style="white-space:nowrap"><button class="o sm" data-m="${s.student_id}">💬 Pesan</button> <button class="o sm" data-k="${s.student_id}">🚪 Keluarkan</button></td></tr>`).join('')||'<tr><td colspan="3" class="mut">Belum ada siswa</td></tr>'}</table></div>
+    <h3>Akses Mock Test</h3>${accTable()}
+    <h3>Daftar siswa</h3><div style="overflow:auto"><table><tr><th>Siswa</th><th>Bab selesai</th><th>Aksi</th></tr>${M.map(s=>`<tr><td>${esc(s.username)}</td><td>${A.filter(a=>a.student_id===s.student_id).length}/${BAB_NOS.length}</td><td style="white-space:nowrap"><button class="o sm" data-m="${s.student_id}">💬 Pesan</button> <button class="o sm" data-k="${s.student_id}">🚪 Keluarkan</button></td></tr>`).join('')||'<tr><td colspan="3" class="mut">Belum ada siswa</td></tr>'}</table></div>
     <h3>Riwayat pesan</h3>${MS.length?MS.map(g=>`<div class="msg ${g.kind}"><b>${g.kind==='warning'?'⚠️ Peringatan':'📩 Pesan'} ${g.student_id?'untuk '+nm(g.student_id):'untuk semua siswa'}</b><div>${esc(g.body)}</div><span class="mut">${new Date(g.created_at).toLocaleString()}</span> <span class="link" data-dm="${g.id}">hapus</span></div>`).join(''):'<p class="mut">Belum ada pesan.</p>'}
     <h3 style="color:#a12020">Zona berbahaya</h3><button class="o" id="dc">🗑️ Hapus kelas ini</button>`;
+  const pend=()=>{const P=MA.filter(x=>x.status==='pending'); return P.length?`<div class="card" style="border:2px solid #e0a800"><h3>🔑 Permintaan Mock Test (${P.length})</h3>${P.map(x=>`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0"><b style="flex:1;min-width:120px">${nm(x.student_id)}</b><button class="sm" data-ma="${x.id}" data-ok="1">✅ Setujui</button> <button class="o sm" data-ma="${x.id}" data-ok="0">✖ Tolak</button></div>`).join('')}</div>`:''};
+  const accTable=()=>`<div style="overflow:auto"><table><tr><th>Siswa</th><th>Status Mock Test</th><th>Aksi</th></tr>${M.map(s=>{const x=MA.find(y=>y.student_id===s.student_id);
+    return `<tr><td>${esc(s.username)}</td><td>${!x?'<span class="mut">belum meminta</span>':x.status==='pending'?'<span class="pill y">menunggu</span>':'<span class="pill g">disetujui</span>'}</td><td style="white-space:nowrap">${!x?'':x.status==='pending'?`<button class="sm" data-ma="${x.id}" data-ok="1">Setujui</button> <button class="o sm" data-ma="${x.id}" data-ok="0">Tolak</button>`:`<button class="o sm" data-ma="${x.id}" data-ok="0">Cabut akses</button>`}</td></tr>`}).join('')||'<tr><td colspan="3" class="mut">Belum ada siswa</td></tr>'}</table></div><p class="mut" style="font-size:12px">Siswa harus memasukkan sandi Mock Test lebih dulu; permintaannya muncul di sini untuk Anda setujui.</p>`;
   function draw(){
     const keep = view==='mgr' ? {to:$('#mto')?.value,k:$('#mk')?.value,b:$('#mb')?.value} : null;
     const body = view==='sum'?sumBody():view==='det'?detBody():mgrBody();
     app.innerHTML=`<div class="card"><button class="o" id="bk">← Kelas saya</button> <h2 style="display:inline;margin-left:12px">${esc(c.name)}</h2> · kode <b style="color:var(--red);letter-spacing:2px">${esc(c.code)}</b> · ${M.length} siswa</div>
-     <div class="card"><h3>Notifikasi</h3>${E.length?E.slice(0,8).map(e=>`<div style="font-size:14px;margin:3px 0">${evText(e)} <span class="mut">${new Date(e.created_at).toLocaleTimeString()}</span></div>`).join(''):'<span class="mut">Belum ada pelanggaran.</span>'}</div>
+     ${pend()}<div class="card"><h3>Notifikasi</h3>${E.length?E.slice(0,8).map(e=>`<div style="font-size:14px;margin:3px 0">${evText(e)} <span class="mut">${new Date(e.created_at).toLocaleTimeString()}</span></div>`).join(''):'<span class="mut">Belum ada pelanggaran.</span>'}</div>
      <div class="card"><div class="tabs"><button class="${view==='sum'?'':'o'}" data-v="sum">Ringkasan semua bab</button><button class="${view==='det'?'':'o'}" data-v="det">Detail per bab & bagian</button><button class="${view==='mgr'?'':'o'}" data-v="mgr">Siswa & Pesan</button></div>${body}</div>`;
     if(keep&&keep.b!==undefined){ if(keep.to!==undefined)$('#mto').value=keep.to; if(keep.k)$('#mk').value=keep.k; $('#mb').value=keep.b; }
     $('#bk').onclick=teacherHome; document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{view=b.dataset.v;draw()});
     const bs=$('#bs'); if(bs) bs.onchange=()=>{bab=+bs.value;draw()};
     document.querySelectorAll('[data-r]').forEach(l=>l.onclick=async()=>{ if(!confirm('Hapus nilai bab ini agar siswa bisa mengerjakan ulang?')) return; const {error}=await db.from('zw_attempts').delete().eq('id',l.dataset.r); error?err(error):load(); });
+    document.querySelectorAll('[data-ma]').forEach(b=>b.onclick=async()=>{ const ok=b.dataset.ok==='1'; if(!ok&&!confirm('Tolak / cabut akses Mock Test siswa ini? Siswa harus meminta lagi dengan sandi.')) return;
+      const {error}=await db.rpc('zw_mock_decide',{p_id:b.dataset.ma,p_approve:ok}); error?err(error):load(); });
     if(view==='mgr'){
       $('#msend').onclick=async()=>{ const body=$('#mb').value.trim(); if(!body) return alert('Tulis isi pesan dulu.');
         const {error}=await db.from('zw_messages').insert({class_id:c.id,student_id:$('#mto').value||null,sender:me.id,kind:$('#mk').value,body}); if(error) return err(error); $('#mb').value=''; toast('✅ Pesan terkirim'); load(); };
@@ -306,8 +329,25 @@ async function dash(c){
   await load(); let tm; const soon=()=>{clearTimeout(tm);tm=setTimeout(load,500)};   // jeda 0,5 dtk agar tidak membanjiri database
   const f='class_id=eq.'+c.id;
   chan=db.channel('dash'+c.id).on('postgres_changes',{event:'*',schema:'public',table:'zw_attempts',filter:f},soon).on('postgres_changes',{event:'*',schema:'public',table:'zw_members',filter:f},soon)
-   .on('postgres_changes',{event:'INSERT',schema:'public',table:'zw_events',filter:f},p=>{toast((p.new.kind==='auto'?'🚨 ':'⚠️ ')+nm(p.new.student_id).replace(/&amp;/g,'&')+' pindah tab ('+p.new.n+'/3), Bab '+p.new.bab);soon()}).subscribe();
+   .on('postgres_changes',{event:'*',schema:'public',table:'zw_mock_access',filter:f},p=>{ if(p.eventType==='INSERT') toast('🔑 '+nm(p.new.student_id).replace(/&amp;/g,'&')+' meminta akses Mock Test'); soon(); })
+   .on('postgres_changes',{event:'INSERT',schema:'public',table:'zw_events',filter:f},p=>{toast((p.new.kind==='auto'?'🚨 ':'⚠️ ')+nm(p.new.student_id).replace(/&amp;/g,'&')+' pindah tab ('+p.new.n+'/3), '+bname(p.new.bab));soon()}).subscribe();
 }
+
+// ===== Layar penuh otomatis + tombol keluar =====
+(()=>{ const de=document.documentElement, fsb=$('#fsb'); let leaving=false;
+  const can=!!(de.requestFullscreen||de.webkitRequestFullscreen); if(!can) return;           // iPhone Safari tidak mendukung
+  const isFS=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
+  const enter=()=>{ try{ const r=(de.requestFullscreen||de.webkitRequestFullscreen).call(de); r&&r.catch&&r.catch(()=>{}); }catch{} };
+  const exit=()=>{ try{ (document.exitFullscreen||document.webkitExitFullscreen).call(document); }catch{} };
+  const paint=()=>{ fsb.hidden=false; fsb.textContent=isFS()?'⤡':'⛶'; fsb.title=fsb.ariaLabel=isFS()?'Keluar layar penuh':'Layar penuh'; };
+  addEventListener('beforeunload',()=>leaving=true); addEventListener('pagehide',()=>leaving=true);
+  const onChange=()=>{ if(!isFS()&&!leaving) LS.set('fs_off',1); paint(); };       // keluar (tombol/Esc) = pilihan pengguna
+  document.addEventListener('fullscreenchange',onChange); document.addEventListener('webkitfullscreenchange',onChange);
+  fsb.onclick=()=>{ if(isFS()) exit(); else { LS.del('fs_off'); enter(); } };
+  const auto=()=>{ if(LS.get('fs_off')||isFS()) return; enter(); };                 // masuk otomatis pada sentuhan/klik pertama
+  document.addEventListener('click',auto,{once:true,capture:true}); document.addEventListener('keydown',auto,{once:true,capture:true});
+  paint();
+})();
 db.auth.onAuthStateChange((ev)=>{ if(ev==='SIGNED_OUT') boot(); });
 boot();
 </script></body></html>
