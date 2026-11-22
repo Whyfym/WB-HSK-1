@@ -87,6 +87,7 @@ button.sm{min-height:36px;padding:4px 12px;font-size:13px}
 
 #fsb{position:fixed;left:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:40;width:34px;height:34px;min-height:0;padding:0;border-radius:50%;background:#000a;color:#fff;font-size:16px;line-height:1;opacity:.65;border:1px solid #fff5}
 #fsb:hover,#fsb:focus{opacity:1}
+.intest{overscroll-behavior-y:contain}   /* cegah tarik-ke-bawah = refresh tidak sengaja saat mengerjakan */
 </style></head><body>
 <header><div class="logo">中</div><b>Zhongwenfy</b><span class="sp"></span><span id="who"></span></header>
 <button id="fsb" title="Layar penuh" aria-label="Layar penuh" hidden>⛶</button>
@@ -110,6 +111,9 @@ let me=null, prof=null, chan=null, timer=null, cleanup=()=>{};
 const err = e => alert('Terjadi masalah: ' + (e?.message || e));
 function modal(html, cb){ const m=document.createElement('div'); m.className='modal'; m.innerHTML=`<div>${html}<p style="text-align:right"><button>OK</button></p></div>`; document.body.appendChild(m); m.querySelector('button').onclick=()=>{m.remove(); cb&&cb()}; }
 function toast(t){ const d=document.createElement('div'); d.className='toast'; d.textContent=t; document.body.appendChild(d); setTimeout(()=>d.remove(),7000); }
+function ask(html,ok='Ya',no='Batal'){ return new Promise(res=>{ const m=document.createElement('div'); m.className='modal';
+  m.innerHTML=`<div>${html}<p style="text-align:right;margin-bottom:0">${no?`<button class="o" data-x="0">${no}</button> `:''}<button data-x="1">${ok}</button></p></div>`; document.body.appendChild(m);
+  m.querySelectorAll('button').forEach(b=>b.onclick=()=>{ m.remove(); res(b.dataset.x==='1'); }); }); }
 function leave(){ clearInterval(timer); cleanup(); cleanup=()=>{}; if(chan){db.removeChannel(chan);chan=null} }
 
 // ===== Alur login =====
@@ -155,6 +159,16 @@ async function studentHome(){
     db.from('zw_msg_reads').select('message_id').eq('student_id',me.id),
     db.from('zw_mock_access').select('status').eq('student_id',me.id).maybeSingle()]);
   const d = {}; (at||[]).forEach(a => d[a.bab]=a);
+  const am = LS.get('active_test');                              // penanda: halaman pengerjaan soal sedang terbuka
+  if(am && am.uid===me.id){
+    const fin=(at||[]).some(a=>a.bab===am.bab);
+    if(BABS[am.bab] && !fin && (am.bab!==16 || (mk&&mk.status==='approved'))){
+      app.innerHTML='';
+      return ask(`<h3>▶️ Ujian dilanjutkan</h3><p>Halaman sempat ter-refresh. Jawaban, waktu, dan posisi soal terakhirmu <b>tersimpan</b>.<br>Ketuk <b>Lanjutkan</b> untuk kembali ke ${bname(am.bab)} (layar penuh).</p>`,'Lanjutkan',null)
+        .then(()=>{ window.__fsUserOff=false; window.fsApi.enter(); startTest(am.bab); });
+    }
+    LS.del('active_test');                                        // penanda usang (sudah dikumpulkan / akses dicabut)
+  }
   const seen = new Set((rd||[]).map(r=>r.message_id)), msgs = ms||[], unread = msgs.filter(x=>!seen.has(x.id));
   const notif = msgs.length ? `<div class="card"><h3>🔔 Pemberitahuan ${unread.length?`<span class="pill r">${unread.length} baru</span>`:''}</h3>${msgs.slice(0,6).map(x=>
       `<div class="msg ${x.kind}${seen.has(x.id)?'':' new'}"><b>${x.kind==='warning'?'⚠️ Peringatan dari Laoshi':'📩 Pesan dari Laoshi'}</b><div>${esc(x.body)}</div><span class="mut">${new Date(x.created_at).toLocaleString()}</span></div>`).join('')}
@@ -163,7 +177,8 @@ async function studentHome(){
   app.innerHTML = `<div class="card"><h2>${esc(m.zw_classes?.name)} <small class="mut">· ${esc(m.username)}</small></h2></div>${notif}
     <div class="card"><h3>模拟测验 · Pilih Bab</h3><div class="babs">${BAB_NOS.map(b=>{const a=d[b];
     return `<div class="card"><b>${bname(b)}</b>${b===16?'<br><span class="mut" style="font-size:12px">40 soal</span>':''}<br>${a?`<span class="sc">${a.score}/${a.total}</span> <span class="pill ${cls(pct(a.score,a.total))}">${pct(a.score,a.total)}%</span><br><button class="o sm" data-r="${b}">Lihat laporan</button>`:b===16?mockBtn():BABS[b]?`<button data-b="${b}">Mulai</button>`:'<span class="mut">segera hadir</span>'}</div>`}).join('')}</div></div>`;
-  document.querySelectorAll('button[data-b]').forEach(b => b.onclick = () => { if(confirm('Mulai '+bname(+b.dataset.b)+'?\n• Hanya bisa dikerjakan SEKALI.\n• Jangan pindah tab/aplikasi: peringatan maksimal 3x, lalu otomatis dikumpulkan.')) startTest(+b.dataset.b); });
+  document.querySelectorAll('button[data-b]').forEach(b => b.onclick = async () => { const n=+b.dataset.b;
+    if(await ask(`<h3>Mulai ${bname(n)}?</h3><p>• Hanya bisa dikerjakan <b>SEKALI</b>.<br>• Layar akan <b>penuh otomatis</b>.<br>• Jangan pindah tab/aplikasi: peringatan maksimal 3x, lalu otomatis dikumpulkan.<br>• Jika halaman ter-refresh, ujian dilanjutkan dari soal terakhir.</p>`,'Mulai','Batal')){ window.__fsUserOff=false; window.fsApi.enter(); startTest(n); } });
   document.querySelectorAll('button[data-r]').forEach(b => b.onclick = () => report(+b.dataset.r));
   document.querySelectorAll('button[data-mk]').forEach(b => b.onclick = askCode);
   const rdb=$('#rd'); if(rdb) rdb.onclick = async () => { const {error}=await db.from('zw_msg_reads').insert(unread.map(x=>({message_id:x.id,student_id:me.id}))); error?err(error):studentHome(); };
@@ -220,7 +235,7 @@ function exampleHTML(s,B){
   return h+'</div>';
 }
 function startTest(bab){
-  leave();
+  leave(); LS.set('active_test',{uid:me.id,bab}); document.documentElement.classList.add('intest'); document.body.classList.add('intest');
   const B=BABS[bab], ans=LS.get('ans_'+bab)||{}, t0=Date.now()-(LS.get('t_'+bab)||0)*1000;
   let vio=LS.get('vio_'+bab)||0, done=false, warn=false, sizes=[14,16,18,20,24], si=LS.get('fs')??(innerWidth<600?1:2);
   let html='';
@@ -243,6 +258,15 @@ function startTest(bab){
   document.querySelectorAll('.opt[data-n]').forEach(o=>{ if(o.dataset.n!=='0') o.onclick=()=>{ ans[o.dataset.n]=o.dataset.k; LS.set('ans_'+bab,ans); mark(); } });
   document.querySelectorAll('.nav a').forEach(a=>a.onclick=()=>$('#q'+a.dataset.g).scrollIntoView({behavior:'smooth',block:'start'}));
   timer=setInterval(()=>{ const s=Math.floor((Date.now()-t0)/1000); LS.set('t_'+bab,s); $('#tm').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); },1000);
+  // --- lanjut setelah refresh: simpan posisi soal & posisi audio ---
+  let stm=0; const onScroll=()=>{ if(stm) return; stm=setTimeout(()=>{ stm=0; const c=[...document.querySelectorAll('.q')].find(e=>e.getBoundingClientRect().bottom>170); if(c) LS.set('q_'+bab,+c.id.slice(1)); },250); };
+  addEventListener('scroll',onScroll,{passive:true});
+  const au=$('audio'), a0=LS.get('a_'+bab); if(a0>2) au.addEventListener('loadedmetadata',()=>{ try{ au.currentTime=a0-2 }catch{} },{once:true});
+  au.addEventListener('timeupdate',()=>{ const x=Math.floor(au.currentTime); if(x>0&&x%3===0) LS.set('a_'+bab,x); });
+  const lq=LS.get('q_'+bab); if(lq){ const go=()=>{ const el=$('#q'+lq); el&&el.scrollIntoView({block:'start'}); }; setTimeout(go,80); setTimeout(go,700); }
+  // --- layar penuh selama tes: masuk lagi pada ketukan berikutnya bila terlepas (kecuali pengguna menekan tombol keluar) ---
+  const reFS=()=>{ if(!window.__fsUserOff && !window.fsApi.is()) window.fsApi.enter(); };
+  document.addEventListener('click',reFS,true);
   // --- anti salin ---
   const stop=e=>e.preventDefault(), t=$('#tst');
   ['copy','cut','contextmenu','selectstart','dragstart'].forEach(ev=>t.addEventListener(ev,stop));
@@ -252,16 +276,16 @@ function startTest(bab){
     if(document.hidden){ vio++; LS.set('vio_'+bab,vio); $('#vc').textContent=vio; db.rpc('zw_log_event',{p_bab:bab,p_kind:vio>=3?'auto':'tab',p_n:vio}); if(vio>=3) finish(true); else warn=true; }
     else if(warn){ warn=false; modal(`⚠️ <b>Peringatan ${vio}/3</b><br>Kamu berpindah tab/aplikasi. Laoshi mendapat pemberitahuan. Pada pelanggaran ke-3 jawabanmu akan dikumpulkan otomatis.`); } };
   document.addEventListener('visibilitychange',vis);
-  cleanup=()=>{ document.removeEventListener('keydown',key); document.removeEventListener('visibilitychange',vis); };
+  cleanup=()=>{ document.removeEventListener('keydown',key); document.removeEventListener('visibilitychange',vis); removeEventListener('scroll',onScroll); document.removeEventListener('click',reFS,true); document.documentElement.classList.remove('intest'); document.body.classList.remove('intest'); };
   async function finish(auto){
     if(done) return; done=true;
     const {data,error}=await db.rpc('zw_submit',{p_bab:bab,p_answers:ans,p_seconds:Math.floor((Date.now()-t0)/1000),p_violations:vio,p_auto:auto});
     if(error){ done=false; $('#sub').disabled=false; return err(error); }
-    ['ans_','t_','vio_'].forEach(p=>LS.del(p+bab)); leave();
+    ['ans_','t_','vio_','q_','a_'].forEach(p=>LS.del(p+bab)); LS.del('active_test'); leave();
     auto ? modal('Jawabanmu dikumpulkan <b>otomatis</b> karena berpindah tab 3 kali.<br>Nilai: <b>'+data.score+'/'+data.total+'</b>',()=>report(bab)) : report(bab);
   }
-  $('#sub').onclick=()=>{ const left=B.qs.length-Object.keys(ans).length;
-    if(confirm(left?`Masih ${left} soal belum dijawab. Kumpulkan? Bab ini TIDAK bisa diulang.`:'Kumpulkan jawaban? Bab ini tidak bisa diulang.')){ $('#sub').disabled=true; finish(false); } };
+  $('#sub').onclick=async()=>{ const left=B.qs.length-Object.keys(ans).length;
+    if(await ask(left?`Masih <b>${left}</b> soal belum dijawab. Kumpulkan? Bab ini <b>TIDAK bisa diulang</b>.`:'Kumpulkan jawaban? Bab ini <b>tidak bisa diulang</b>.','Kumpulkan','Kembali')){ $('#sub').disabled=true; finish(false); } };
 }
 
 // ===== Laoshi =====
@@ -334,16 +358,17 @@ async function dash(c){
 }
 
 // ===== Layar penuh otomatis + tombol keluar =====
-(()=>{ const de=document.documentElement, fsb=$('#fsb'); let leaving=false;
+(()=>{ window.fsApi={enter(){},is(){return false}}; const de=document.documentElement, fsb=$('#fsb'); let leaving=false;
   const can=!!(de.requestFullscreen||de.webkitRequestFullscreen); if(!can) return;           // iPhone Safari tidak mendukung
   const isFS=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
   const enter=()=>{ try{ const r=(de.requestFullscreen||de.webkitRequestFullscreen).call(de); r&&r.catch&&r.catch(()=>{}); }catch{} };
   const exit=()=>{ try{ (document.exitFullscreen||document.webkitExitFullscreen).call(document); }catch{} };
+  window.fsApi={enter,is:isFS};
   const paint=()=>{ fsb.hidden=false; fsb.textContent=isFS()?'⤡':'⛶'; fsb.title=fsb.ariaLabel=isFS()?'Keluar layar penuh':'Layar penuh'; };
   addEventListener('beforeunload',()=>leaving=true); addEventListener('pagehide',()=>leaving=true);
   const onChange=()=>{ if(!isFS()&&!leaving) LS.set('fs_off',1); paint(); };       // keluar (tombol/Esc) = pilihan pengguna
   document.addEventListener('fullscreenchange',onChange); document.addEventListener('webkitfullscreenchange',onChange);
-  fsb.onclick=()=>{ if(isFS()) exit(); else { LS.del('fs_off'); enter(); } };
+  fsb.onclick=()=>{ if(isFS()){ window.__fsUserOff=true; exit(); } else { window.__fsUserOff=false; LS.del('fs_off'); enter(); } };
   const auto=()=>{ if(LS.get('fs_off')||isFS()) return; enter(); };                 // masuk otomatis pada sentuhan/klik pertama
   document.addEventListener('click',auto,{once:true,capture:true}); document.addEventListener('keydown',auto,{once:true,capture:true});
   paint();
